@@ -221,7 +221,7 @@ ResearchGate Working Paper.
 | Platform | Link |
 |---|---|
 | **ResearchGate** | [DOI: 10.13140/RG.2.2.33391.60326](https://doi.org/10.13140/rg.2.2.33391.60326) |
-| **SSRN (Elsevier)** | [Abstract ID: 6774983](https://ssrn.com/abstract=6774983) |
+| **SSRN (Elsevier)** | [Abstract ID: 6774983](https://ssrn.com/abstract=6774983) (posted May 22, 2026)|
 
 License: CC BY 4.0 · Published: April 2026
 
