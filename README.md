@@ -214,11 +214,16 @@ This design directly addresses the vicarious liability risk identified in the wo
 
 ## Research Paper
 
-**Kanoklertwongse, A. (2026).** A.C.E. — AI Concierge & Engine: An AI-Driven Financial Intelligence Framework for U.S. SME Restaurant Resilience. *ResearchGate Working Paper.*
+Kanoklertwongse, A. (2026). A.C.E. — AI Concierge & Engine: An AI-Driven 
+Financial Intelligence Framework for U.S. SME Restaurant Resilience. 
+ResearchGate Working Paper.
 
-- **DOI:** [10.13140/RG.2.2.33391.60326](https://doi.org/10.13140/RG.2.2.33391.60326)
-- **License:** CC BY 4.0
-- **Published:** April 2026
+| Platform | Link |
+|---|---|
+| **ResearchGate** | [DOI: 10.13140/RG.2.2.33391.60326](https://doi.org/10.13140/rg.2.2.33391.60326) |
+| **SSRN (Elsevier)** | [Abstract ID: 6774983](https://ssrn.com/abstract=6774983) |
+
+License: CC BY 4.0 · Published: April 2026
 
 ---
 
