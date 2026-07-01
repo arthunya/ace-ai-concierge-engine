@@ -13,7 +13,7 @@
 
 A.C.E. (AI Concierge & Engine) is an open-source AI framework designed to eliminate the **"Financial Blindness"** crisis afflicting U.S. small and medium-sized enterprise (SME) restaurant operators — the dangerous lag between cost data arrival and pricing decisions caused by manual invoice processing and fragmented data systems.
 
-The U.S. restaurant industry generates **$1.1 trillion** in annual sales and employs **15.5 million Americans**. Yet the SME segment operates at a severe informational disadvantage relative to corporate chains that deploy proprietary AI analytics. A.C.E. democratizes access to enterprise-grade financial intelligence by integrating directly with existing POS infrastructure — no hardware replacement required.
+The U.S. restaurant industry generates **$1.1 trillion** in annual sales and employs **8.6 million Americans**. Yet the SME segment operates at a severe informational disadvantage relative to corporate chains that deploy proprietary AI analytics. A.C.E. democratizes access to enterprise-grade financial intelligence by integrating directly with existing POS infrastructure — no hardware replacement required.
 
 This repository contains the **proof-of-concept implementation** of the A.C.E. Intelligent Neural Network architecture described in:
 
