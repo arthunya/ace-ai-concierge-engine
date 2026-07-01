@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A.C.E. — AI Concierge &amp; Engine</title>
+<style>
+  :root{
+    --ink:#121A0F;
+    --ink-2:#0B100A;
+    --paper:#F6F0E1;
+    --paper-2:#ECE2C8;
+    --green:#3F6B49;
+    --green-deep:#2A4A32;
+    --amber:#E3AF48;
+    --stamp:#B0402C;
+    --text-ink:#1C2418;
+    --text-soft:#5C6355;
+    --line:#D8CDA9;
+    --line-dark:#2B3628;
+    --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    --serif: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;font-family:var(--sans);color:var(--text-ink);background:var(--paper);-webkit-font-smoothing:antialiased;}
+  a{color:inherit;}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 32px;}
+
+  /* ---------- NAV ---------- */
+  nav{position:sticky;top:0;z-index:50;background:rgba(18,26,15,0.94);border-bottom:1px solid var(--line-dark);}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:60px;}
+  .brand{font-family:var(--mono);font-weight:700;font-size:15px;letter-spacing:0.02em;color:var(--paper);}
+  .brand em{font-style:normal;color:var(--amber);}
+  .navlinks{display:flex;gap:26px;font-family:var(--mono);font-size:12px;letter-spacing:0.04em;text-transform:uppercase;}
+  .navlinks a{text-decoration:none;color:#9FA895;border-bottom:1px solid transparent;padding-bottom:3px;transition:.2s;}
+  .navlinks a:hover{color:var(--paper);border-color:var(--amber);}
+
+  /* ---------- HERO (dark, register/terminal feel) ---------- */
+  header.hero{background:var(--ink);color:var(--paper);padding:88px 0 70px;position:relative;overflow:hidden;}
+  .hero-grid{display:grid;grid-template-columns:1.15fr 0.85fr;gap:40px;align-items:center;}
+  .eyebrow{
+    font-family:var(--mono);font-size:11.5px;letter-spacing:0.1em;text-transform:uppercase;
+    color:var(--amber);font-weight:600;margin-bottom:22px;display:flex;align-items:center;gap:10px;
+  }
+  .eyebrow::before{content:"";width:24px;height:1px;background:var(--amber);display:inline-block;}
+  h1.headline{
+    font-family:var(--serif);font-weight:700;font-size:clamp(34px,4.6vw,54px);
+    line-height:1.1;letter-spacing:-0.01em;margin:0 0 26px;max-width:14ch;
+  }
+  h1.headline .accent{color:var(--amber);}
+  .lede{font-size:17.5px;line-height:1.62;color:#C8CDBB;max-width:52ch;margin:0 0 36px;}
+  .cta-row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:56px;}
+  .btn{display:inline-flex;align-items:center;gap:9px;padding:13px 24px;border-radius:2px;
+    font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:0.01em;
+    text-decoration:none;cursor:pointer;border:1px solid transparent;transition:transform .18s ease, box-shadow .18s ease;}
+  .btn:hover{transform:translateY(-2px);}
+  .btn-primary{background:var(--amber);color:var(--ink-2);box-shadow:0 6px 18px rgba(227,175,72,0.22);}
+  .btn-primary:hover{box-shadow:0 10px 24px rgba(227,175,72,0.32);}
+  .btn-ghost{border-color:#4A5540;color:var(--paper);background:transparent;}
+  .btn-ghost:hover{background:var(--paper);color:var(--ink);}
+
+  .definition{border-top:1px solid var(--line-dark);padding-top:28px;display:grid;grid-template-columns:auto 1fr;gap:18px 26px;max-width:640px;}
+  .def-term{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--amber);white-space:nowrap;}
+  .def-body{font-size:14px;line-height:1.62;color:#AEB5A1;}
+  .def-body b{color:var(--paper);font-weight:600;}
+
+  /* ---------- HERO VISUAL: chaos -> clarity ---------- */
+  .hero-visual{position:relative;height:380px;}
+  .hero-visual svg{width:100%;height:100%;overflow:visible;}
+  .chaos-item{transform-box:fill-box;transform-origin:center;}
+  .drift1{animation:drift 5s ease-in-out infinite;}
+  .drift2{animation:drift 6.5s ease-in-out infinite 0.6s;}
+  .drift3{animation:drift 5.6s ease-in-out infinite 1.2s;}
+  @keyframes drift{0%,100%{transform:translateY(0) rotate(var(--r,0deg));}50%{transform:translateY(-6px) rotate(calc(var(--r,0deg) + 2deg));}}
+  .flow{opacity:0;}
+  .flow1{animation:flowmove 4.5s ease-in infinite;}
+  .flow2{animation:flowmove 4.5s ease-in infinite 1.5s;}
+  .flow3{animation:flowmove 4.5s ease-in infinite 3s;}
+  @keyframes flowmove{0%{opacity:0;}8%{opacity:0.9;}55%{opacity:0.5;}72%{opacity:0;}100%{opacity:0;}}
+  .node-pulse{animation:pulse 3.2s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:0.55;r:46;}50%{opacity:0.9;r:52;}}
+  .bar{transform-box:fill-box;transform-origin:bottom;animation:barrise 3.2s ease-in-out infinite;}
+  .bar1{animation-delay:0s;} .bar2{animation-delay:0.2s;} .bar3{animation-delay:0.4s;} .bar4{animation-delay:0.6s;}
+  @keyframes barrise{0%,100%{transform:scaleY(0.75);}50%{transform:scaleY(1);}}
+
+  /* ---------- STATS ---------- */
+  section.stats{background:var(--ink-2);color:var(--paper);padding:44px 0;border-bottom:1px solid var(--line-dark);}
+  .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;}
+  .stat-num{font-family:var(--mono);font-size:28px;color:var(--amber);margin-bottom:6px;}
+  .stat-label{font-family:var(--mono);font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8B9382;}
+
+  /* ---------- PROBLEM / PURPOSE ---------- */
+  section.purpose{padding:90px 0;}
+  .section-head{max-width:640px;margin-bottom:52px;}
+  .section-tag{font-family:var(--mono);font-size:11.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--green);font-weight:700;margin-bottom:14px;}
+  h2{font-family:var(--serif);font-weight:700;font-size:clamp(26px,3.2vw,36px);line-height:1.2;margin:0;color:var(--text-ink);}
+  .purpose-grid{display:grid;grid-template-columns:1fr 1fr;gap:52px;align-items:start;}
+  .purpose-grid p{font-size:15.5px;line-height:1.72;color:var(--text-soft);margin:0 0 18px;}
+  .purpose-grid p b{color:var(--text-ink);}
+  .goal-list{list-style:none;padding:0;margin:0;}
+  .goal-list li{display:flex;gap:16px;padding:16px 0;border-top:1px solid var(--line);}
+  .goal-list li:last-child{border-bottom:1px solid var(--line);}
+  .goal-num{font-family:var(--mono);color:var(--green);font-size:13px;flex-shrink:0;width:24px;padding-top:2px;}
+  .goal-text b{display:block;font-size:14.5px;margin-bottom:3px;color:var(--text-ink);}
+  .goal-text span{font-size:13px;color:var(--text-soft);line-height:1.5;}
+
+  /* ---------- ARCHITECTURE DIAGRAM ---------- */
+  section.architecture{background:var(--paper-2);padding:90px 0;}
+  .diagram-card{background:var(--ink);border-radius:4px;padding:44px clamp(18px,4vw,52px) 36px;color:var(--paper);}
+  .diagram-card svg{width:100%;height:auto;display:block;}
+  .diagram-caption{margin-top:26px;font-size:13px;color:var(--text-soft);text-align:center;max-width:620px;margin-left:auto;margin-right:auto;line-height:1.6;}
+
+  /* ---------- VIDEO ---------- */
+  section.video{padding:90px 0;}
+  .video-frame{position:relative;width:100%;padding-top:56.25%;background:var(--ink);border-radius:4px;overflow:hidden;box-shadow:0 20px 50px rgba(18,26,15,0.16);}
+  .video-frame iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0;}
+
+  /* ---------- CLOSING ---------- */
+  section.closing{background:var(--ink);color:var(--paper);padding:100px 0;text-align:center;}
+  .closing .eyebrow{justify-content:center;}
+  .closing h2{color:var(--paper);max-width:20ch;margin:0 auto 20px;}
+  .closing p{font-size:15.5px;color:#AEB5A1;max-width:52ch;margin:0 auto 36px;line-height:1.7;}
+
+  footer{padding:30px 0;text-align:center;font-family:var(--mono);font-size:11.5px;color:var(--text-soft);}
+  footer a{text-decoration:none;border-bottom:1px solid var(--line);}
+
+  @media (max-width:820px){
+    .hero-grid{grid-template-columns:1fr;}
+    .hero-visual{height:240px;margin-top:20px;}
+    .stat-grid{grid-template-columns:1fr;gap:24px;text-align:center;}
+    .purpose-grid{grid-template-columns:1fr;gap:32px;}
+    .definition{grid-template-columns:1fr;}
+    .navlinks{display:none;}
+  }
+  @media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important;}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="brand">A.C.E. <em>/ AI Concierge &amp; Engine</em></div>
+    <div class="navlinks">
+      <a href="#purpose">Purpose</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#video">Watch</a>
+      <a href="#paper">Research</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div>
+        <div class="eyebrow">A Research Framework &nbsp;·&nbsp; Westcliff University, 2026</div>
+        <h1 class="headline">Ending <span class="accent">Financial Blindness</span> for America's independent restaurants.</h1>
+        <p class="lede">A.C.E. is an AI-powered financial intelligence framework that gives small restaurant operators the same real-time cost visibility that large corporate chains already have &mdash; without new hardware, new staff, or a new POS system.</p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="#video">▶ Watch the overview</a>
+          <a class="btn btn-ghost" href="#paper">Read the research paper</a>
+        </div>
+
+        <div class="definition">
+          <div class="def-term">A.C.E., <i>n.</i></div>
+          <div class="def-body">
+            <b>/eɪs/</b> &mdash; An "Intelligent Neural Network" layer that connects to a restaurant's existing point-of-sale system (Toast, Clover, Square) to automatically read supplier invoices, recommend menu prices before margins erode, and forecast staffing needs a week in advance.
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <svg viewBox="0 0 380 380" xmlns="http://www.w3.org/2000/svg">
+          <!-- chaos cluster: crumpled receipt -->
+          <g class="chaos-item drift1" style="--r:-10deg" transform="translate(48,70) rotate(-10)">
+            <rect x="-22" y="-30" width="44" height="60" fill="#1C2418" stroke="#5C6E52" stroke-width="1"/>
+            <line x1="-14" y1="-18" x2="14" y2="-18" stroke="#5C6E52" stroke-width="1.4"/>
+            <line x1="-14" y1="-8" x2="14" y2="-8" stroke="#5C6E52" stroke-width="1.4"/>
+            <line x1="-14" y1="2" x2="10" y2="2" stroke="#5C6E52" stroke-width="1.4"/>
+            <line x1="-14" y1="12" x2="14" y2="12" stroke="#5C6E52" stroke-width="1.4"/>
+            <line x1="-14" y1="22" x2="6" y2="22" stroke="#5C6E52" stroke-width="1.4"/>
+          </g>
+
+          <!-- chaos cluster: spreadsheet grid -->
+          <g class="chaos-item drift2" style="--r:8deg" transform="translate(70,190) rotate(8)">
+            <rect x="-28" y="-22" width="56" height="44" fill="#1C2418" stroke="#5C6E52" stroke-width="1"/>
+            <line x1="-28" y1="-7" x2="28" y2="-7" stroke="#5C6E52" stroke-width="1"/>
+            <line x1="-28" y1="8" x2="28" y2="8" stroke="#5C6E52" stroke-width="1"/>
+            <line x1="-9" y1="-22" x2="-9" y2="22" stroke="#5C6E52" stroke-width="1"/>
+            <line x1="10" y1="-22" x2="10" y2="22" stroke="#5C6E52" stroke-width="1"/>
+          </g>
+
+          <!-- chaos cluster: sticky note -->
+          <g class="chaos-item drift3" style="--r:-6deg" transform="translate(40,290) rotate(-6)">
+            <polygon points="-20,-20 20,-20 20,14 8,20 -20,20" fill="#1C2418" stroke="#B0402C" stroke-width="1.2"/>
+            <line x1="-11" y1="-8" x2="11" y2="-8" stroke="#B0402C" stroke-width="1.2"/>
+            <line x1="-11" y1="1" x2="11" y2="1" stroke="#B0402C" stroke-width="1.2"/>
+          </g>
+
+          <!-- flowing particles toward node -->
+          <circle r="4" fill="#E3AF48" class="flow flow1"><animateMotion dur="4.5s" repeatCount="indefinite" path="M 60 80 C 120 90, 150 140, 188 190"/></circle>
+          <circle r="4" fill="#E3AF48" class="flow flow2"><animateMotion dur="4.5s" repeatCount="indefinite" path="M 80 195 C 130 195, 160 195, 188 192"/></circle>
+          <circle r="4" fill="#E3AF48" class="flow flow3"><animateMotion dur="4.5s" repeatCount="indefinite" path="M 52 290 C 110 270, 150 230, 188 195"/></circle>
+
+          <!-- central A.C.E. node -->
+          <circle cx="190" cy="192" r="46" fill="none" stroke="#3F6B49" stroke-width="1" class="node-pulse"/>
+          <polygon points="190,158 220,175 220,209 190,226 160,209 160,175"
+                   fill="#182A1B" stroke="#E3AF48" stroke-width="1.6"/>
+          <text x="190" y="188" text-anchor="middle" fill="#E3AF48" font-family="SFMono-Regular, Consolas, monospace" font-size="12" font-weight="700">A.C.E.</text>
+          <text x="190" y="204" text-anchor="middle" fill="#9FA895" font-family="SFMono-Regular, Consolas, monospace" font-size="8.5">engine</text>
+
+          <!-- clean output bars -->
+          <g transform="translate(268,240)">
+            <line x1="-8" y1="20" x2="72" y2="20" stroke="#3A4632" stroke-width="1"/>
+            <rect class="bar bar1" x="0" y="-4" width="10" height="24" fill="#3F6B49"/>
+            <rect class="bar bar2" x="18" y="-14" width="10" height="34" fill="#4C7C56"/>
+            <rect class="bar bar3" x="36" y="-24" width="10" height="44" fill="#5C8E66"/>
+            <rect class="bar bar4" x="54" y="-32" width="10" height="52" fill="#E3AF48"/>
+          </g>
+          <text x="304" y="284" text-anchor="middle" fill="#7C8674" font-family="SFMono-Regular, Consolas, monospace" font-size="9">clarity</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="stats">
+  <div class="wrap">
+    <div class="stat-grid">
+      <div><div class="stat-num">$1.1T</div><div class="stat-label">U.S. restaurant sector, annual sales</div></div>
+      <div><div class="stat-num">572,464</div><div class="stat-label">Small food service operators (SBA, 2025)</div></div>
+      <div><div class="stat-num">15+ hrs</div><div class="stat-label">Weekly admin time A.C.E. targets to recover</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="purpose" id="purpose">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-tag">The Problem &amp; The Goal</div>
+      <h2>Why this exists, and what it's built to do</h2>
+    </div>
+    <div class="purpose-grid">
+      <div>
+        <p><b>The problem is structural, not a lack of effort.</b> Independent restaurant operators have adopted modern cloud POS systems &mdash; but sales data lives in one place and supplier cost data arrives as unstructured PDF invoices in another. There is no automated bridge between them.</p>
+        <p>When ingredient costs spike, an operator without that bridge often doesn't adjust menu prices for weeks. By then, the margin is already gone. Large corporate chains, with proprietary AI monitoring costs in real time, don't have this lag &mdash; and the gap between the two is widening.</p>
+      </div>
+      <ul class="goal-list">
+        <li><div class="goal-num">01</div><div class="goal-text"><b>See costs the moment they change</b><span>Automated invoice reading replaces manual data entry, closing the gap between a cost increase and knowing about it.</span></div></li>
+        <li><div class="goal-num">02</div><div class="goal-text"><b>Price with the data, not weeks later</b><span>Menu pricing recommendations surface as soon as a menu item's food cost crosses a set threshold &mdash; not at the next manual review.</span></div></li>
+        <li><div class="goal-num">03</div><div class="goal-text"><b>Staff for the week ahead, not the week behind</b><span>Labor forecasts use sales history, local events, and weather to recommend staffing before demand hits, not after.</span></div></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="architecture" id="architecture">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-tag">System Overview</div>
+      <h2>Three layers, one continuous intelligence loop</h2>
+    </div>
+
+    <div class="diagram-card">
+      <svg viewBox="0 0 900 360" xmlns="http://www.w3.org/2000/svg">
+        <line x1="175" y1="90" x2="345" y2="90" stroke="#3A4632" stroke-width="1.5"/>
+        <line x1="555" y1="90" x2="725" y2="90" stroke="#3A4632" stroke-width="1.5"/>
+
+        <circle r="4" fill="#E3AF48"><animateMotion dur="3.6s" repeatCount="indefinite" path="M 175 90 L 345 90"/></circle>
+        <circle r="4" fill="#E3AF48"><animateMotion dur="3.6s" repeatCount="indefinite" begin="1.2s" path="M 345 90 L 555 90"/></circle>
+        <circle r="4" fill="#E3AF48"><animateMotion dur="3.6s" repeatCount="indefinite" begin="2.4s" path="M 555 90 L 725 90"/></circle>
+
+        <circle cx="90" cy="90" r="52" fill="none" stroke="#4C7C56" stroke-width="2"/>
+        <text x="90" y="72" text-anchor="middle" fill="#F6F0E1" font-family="Georgia, serif" font-size="14" font-style="italic">Layer 1</text>
+        <g transform="translate(90,102)" stroke="#4C7C56" stroke-width="1.6" fill="none" stroke-linecap="round">
+          <rect x="-11" y="-13" width="22" height="26" rx="2"/>
+          <line x1="-6" y1="-5" x2="6" y2="-5"/><line x1="-6" y1="1" x2="6" y2="1"/><line x1="-6" y1="7" x2="2" y2="7"/>
+        </g>
+
+        <circle cx="450" cy="90" r="52" fill="none" stroke="#E3AF48" stroke-width="2"/>
+        <text x="450" y="72" text-anchor="middle" fill="#F6F0E1" font-family="Georgia, serif" font-size="14" font-style="italic">Layer 2</text>
+        <text x="450" y="112" text-anchor="middle" fill="#E3AF48" font-family="Georgia, serif" font-size="26">$</text>
+
+        <circle cx="810" cy="90" r="52" fill="none" stroke="#B0402C" stroke-width="2"/>
+        <text x="810" y="72" text-anchor="middle" fill="#F6F0E1" font-family="Georgia, serif" font-size="14" font-style="italic">Layer 3</text>
+        <g transform="translate(810,104)" stroke="#B0402C" stroke-width="1.6" fill="none" stroke-linecap="round">
+          <circle cx="-7" cy="-9" r="5"/><circle cx="7" cy="-9" r="5"/>
+          <path d="M -14 8 C -14 -1, -1 -1, -1 8"/><path d="M 0 8 C 0 -1, 13 -1, 13 8"/>
+        </g>
+
+        <text x="90" y="185" text-anchor="middle" fill="#F6F0E1" font-family="-apple-system, sans-serif" font-size="15" font-weight="600">Invoice Ingestion</text>
+        <text x="90" y="207" text-anchor="middle" fill="#9FA895" font-family="-apple-system, sans-serif" font-size="12">AI-OCR reads supplier</text>
+        <text x="90" y="223" text-anchor="middle" fill="#9FA895" font-family="-apple-system, sans-serif" font-size="12">invoices automatically</text>
+
+        <text x="450" y="185" text-anchor="middle" fill="#F6F0E1" font-family="-apple-system, sans-serif" font-size="15" font-weight="600">Dynamic Menu Pricing</text>
+        <text x="450" y="207" text-anchor="middle" fill="#9FA895" font-family="-apple-system, sans-serif" font-size="12">Flags items crossing the</text>
+        <text x="450" y="223" text-anchor="middle" fill="#9FA895" font-family="-apple-system, sans-serif" font-size="12">food-cost threshold</text>
+
+        <text x="810" y="185" text-anchor="middle" fill="#F6F0E1" font-family="-apple-system, sans-serif" font-size="15" font-weight="600">Labor Scheduling</text>
+        <text x="810" y="207" text-anchor="middle" fill="#9FA895" font-family="-apple-system, sans-serif" font-size="12">Forecasts staffing needs</text>
+        <text x="810" y="223" text-anchor="middle" fill="#9FA895" font-family="-apple-system, sans-serif" font-size="12">7 days ahead</text>
+
+        <rect x="30" y="270" width="840" height="56" rx="3" fill="none" stroke="#3A4632" stroke-width="1"/>
+        <text x="450" y="294" text-anchor="middle" fill="#E3AF48" font-family="Georgia, serif" font-style="italic" font-size="13.5">Human-in-the-Loop</text>
+        <text x="450" y="312" text-anchor="middle" fill="#9FA895" font-family="-apple-system, sans-serif" font-size="11.5">Every recommendation requires manager approval &mdash; A.C.E. informs the decision, it doesn't make it alone.</text>
+      </svg>
+    </div>
+    <p class="diagram-caption">A.C.E. connects to the POS system a restaurant already uses, so no new hardware or migration is required. Each layer builds on the one before it &mdash; invoice data feeds pricing intelligence, and sales patterns feed labor forecasts.</p>
+  </div>
+</section>
+
+<section class="video" id="video">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-tag">Watch</div>
+      <h2>A.C.E., explained in three minutes</h2>
+    </div>
+    <div class="video-frame">
+      <iframe src="https://drive.google.com/file/d/1GR6mEBiMach8riuTqYeKHITx9uJLC-E6/preview" allow="autoplay" allowfullscreen></iframe>
+    </div>
+  </div>
+</section>
+
+<section class="closing" id="paper">
+  <div class="wrap">
+    <div class="eyebrow">Published Research</div>
+    <h2>Read the full framework</h2>
+    <p>A.C.E. &mdash; AI Concierge &amp; Engine: An AI-Driven Financial Intelligence Framework for U.S. SME Restaurant Resilience. Working paper, posted to SSRN and ResearchGate, April 2026.</p>
+    <div class="cta-row" style="justify-content:center;">
+      <a class="btn btn-primary" href="https://ssrn.com/abstract=6774983" target="_blank" rel="noopener">Read on SSRN ↗</a>
+      <a class="btn btn-ghost" href="https://www.researchgate.net/publication/403792836_ACE_-_AI_Concierge_Engine_An_AI-Driven_Financial_Intelligence_Framework_for_US_SME_Restaurant_Resilience" target="_blank" rel="noopener">View on ResearchGate ↗</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Arthunya Kanoklertwongse &nbsp;·&nbsp; M.S. Computer Science, Westcliff University &nbsp;·&nbsp; <a href="https://arthunya.github.io" target="_blank" rel="noopener">arthunya.github.io</a>
+  </div>
+</footer>
+
+</body>
+</html>
