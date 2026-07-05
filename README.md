@@ -59,9 +59,9 @@ A.C.E. transforms the passive Hub-and-Spoke model into a proactive intelligence 
 │  Real-time food cost % monitoring → price recommendations   │
 │  Threshold: flag items when food cost % exceeds 32%         │
 │  Human-in-the-Loop: manager confirmation required           │
-└──────────────────────────┬──────────────────────────────────┘
+└─────────────────────────┬──────────────────────────────────┘
                            │
-┌──────────────────────────▼──────────────────────────────────┐
+┌─────────────────────────▼──────────────────────────────────┐
 │  Layer 3: Predictive Labor Scheduling                       │
 │  Historical POS data + events + weather → demand forecast   │
 │  Output: 7-day staffing recommendations                     │
@@ -104,16 +104,16 @@ ace-ai-concierge-engine/
 │   │   ├── demand_forecaster.py   # Time-series demand prediction
 │   │   └── labor_optimizer.py     # Staffing recommendation engine
 │   │
-│   └── api/                       # REST API interface
+│   └── api/                      # REST API interface
 │       ├── __init__.py
-│       └── endpoints.py           # FastAPI endpoints
+│       └── endpoints.py          # FastAPI endpoints
 │
 ├── notebooks/                     # Jupyter exploration notebooks
 │   ├── 01_invoice_processing_demo.ipynb
 │   ├── 02_menu_engineering_demo.ipynb
 │   └── 03_labor_scheduling_demo.ipynb
 │
-├── tests/                         # Unit tests
+└── tests/                         # Unit tests
 │   ├── test_invoice_loader.py
 │   ├── test_menu_engine.py
 │   └── test_labor_optimizer.py
@@ -214,8 +214,8 @@ This design directly addresses the vicarious liability risk identified in the wo
 
 ## Research Paper
 
-Kanoklertwongse, A. (2026). A.C.E. — AI Concierge & Engine: An AI-Driven 
-Financial Intelligence Framework for U.S. SME Restaurant Resilience. 
+Kanoklertwongse, A. (2026). A.C.E. — AI Concierge & Engine: An AI-Driven
+Financial Intelligence Framework for U.S. SME Restaurant Resilience.
 ResearchGate Working Paper.
 
 | Platform | Link |
@@ -232,7 +232,7 @@ License: CC BY 4.0 · Published: April 2026
 **Arthunya Kanoklertwongse**
 M.S. Computer Science (AI Concentration) — Westcliff University, San Francisco
 MSc Financial Technology (Merit, academic merit scholarship) — University of the West of England, Bristol
-14 years: Financial analysis · Enterprise operations · KYC/AML compliance
+14 years: Financial analysis · Enterprise operations · Vendor risk management
 
 **Background:** A.C.E. emerges from 14 years of practitioner experience in financial analysis and internal audit — where the manual data integration problems this system addresses were encountered firsthand. The framework translates financial governance expertise into AI system design, applying audit-grade precision to automated financial intelligence.
 
