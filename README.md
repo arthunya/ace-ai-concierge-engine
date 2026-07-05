@@ -81,7 +81,7 @@ A.C.E. transforms the passive Hub-and-Spoke model into a proactive intelligence 
 ```
 ace-ai-concierge-engine/
 ├── README.md                      # This file
-├── LICENSE                        # MIT License
+├── LICENSE                       # MIT License
 ├── requirements.txt               # Python dependencies
 ├── demo.py                        # Quick demo — run this first
 │
@@ -106,7 +106,7 @@ ace-ai-concierge-engine/
 │   │
 │   └── api/                      # REST API interface
 │       ├── __init__.py
-│       └── endpoints.py          # FastAPI endpoints
+│       └── endpoints.py           # FastAPI endpoints
 │
 ├── notebooks/                     # Jupyter exploration notebooks
 │   ├── 01_invoice_processing_demo.ipynb
@@ -118,7 +118,7 @@ ace-ai-concierge-engine/
 │   ├── test_menu_engine.py
 │   └── test_labor_optimizer.py
 │
-└── docs/                          # Documentation
+└── docs/                         # Documentation
     ├── architecture.md
     └── pos_integration_guide.md
 ```
