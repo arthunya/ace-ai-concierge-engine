@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A.C.E. — AI Concierge &amp; Engine · Phase-1 Demo</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --panel:#fff; --ink:#12161c; --muted:#5b6672; --line:#e2e6ea;
+    --accent:#1f5f8b; --ok:#2f7a4d; --warn:#a8620a; --stop:#a32f2f;
+    --ok-bg:#e8f4ec; --warn-bg:#fbf0e2; --stop-bg:#f8e9e9; --accent-bg:#e9f0f6;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#12161b; --panel:#1a2027; --ink:#e6eaee; --muted:#9aa6b2; --line:#2a323b;
+      --accent:#6fb3dd; --ok:#68c48d; --warn:#e0a459; --stop:#e08585;
+      --ok-bg:#17301f; --warn-bg:#332512; --stop-bg:#331a1a; --accent-bg:#16293a;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:1120px;margin:0 auto;padding:24px 18px 64px}
+  h1{font-size:24px;margin:0 0 4px}
+  h2{font-size:18px;margin:0 0 4px}
+  h3{font-size:15px;margin:0 0 6px}
+  .sub{color:var(--muted);font-size:13px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    padding:18px;margin:16px 0}
+  .banner{background:var(--warn-bg);border:1px solid var(--warn);border-radius:10px;
+    padding:14px 16px;margin:14px 0}
+  .banner strong{color:var(--warn)}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:18px 0 0}
+  .tab{padding:9px 15px;border:1px solid var(--line);background:var(--panel);
+    border-radius:8px;cursor:pointer;font-size:14px;color:var(--ink)}
+  .tab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+  .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11.5px;
+    font-weight:600;letter-spacing:.02em;white-space:nowrap}
+  .b-ok{background:var(--ok-bg);color:var(--ok)}
+  .b-warn{background:var(--warn-bg);color:var(--warn)}
+  .b-stop{background:var(--stop-bg);color:var(--stop)}
+  .b-info{background:var(--accent-bg);color:var(--accent)}
+  .scroll{overflow-x:auto}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:640px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);
+    vertical-align:top}
+  th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);
+    font-weight:600}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .why{color:var(--muted);font-size:12.5px;margin-top:3px;max-width:60ch}
+  select,button.act{font:inherit;padding:8px 11px;border-radius:8px;
+    border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+  .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:13px}
+  .stat .n{font-size:25px;font-weight:650;font-variant-numeric:tabular-nums}
+  .stat .l{font-size:12px;color:var(--muted);margin-top:2px}
+  .rec{border:1px solid var(--line);border-left:3px solid var(--warn);
+    border-radius:8px;padding:13px;margin:10px 0;background:var(--panel)}
+  .rec.ok{border-left-color:var(--ok)}
+  .bars{display:flex;align-items:flex-end;gap:10px;height:170px;margin:14px 0 6px}
+  .bar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;
+    align-items:center;gap:5px;height:100%}
+  .bar .fill{width:100%;background:var(--accent);border-radius:5px 5px 0 0;min-height:3px}
+  .bar .cap{font-size:11px;color:var(--muted);text-align:center;line-height:1.25}
+  .bar .val{font-size:12px;font-variant-numeric:tabular-nums;font-weight:600}
+  pre.src{background:var(--bg);border:1px solid var(--line);border-radius:8px;
+    padding:12px;overflow-x:auto;font-size:12px;line-height:1.45;margin:0}
+  .hide{display:none}
+  ul.tight{margin:6px 0 0;padding-left:20px}
+  ul.tight li{margin:3px 0}
+  code{background:var(--bg);padding:1px 5px;border-radius:4px;font-size:12.5px}
+  .foot{color:var(--muted);font-size:12.5px;margin-top:26px;border-top:1px solid var(--line);
+    padding-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>A.C.E. — AI Concierge &amp; Engine</h1>
+  <div class="sub">Phase-1 proof of concept · <span id="meta"></span></div>
+
+  <div class="banner">
+    <strong>All data on this page is synthetic and illustrative.</strong>
+    “Bella Vista Trattoria” is not a real business, the invoices were written
+    for this repository, and the cover history is generated. <strong>No pilot
+    deployment has taken place</strong> — the working paper describes the
+    10-location Early Adopter pilot as future work (§4.1, §7). Nothing here is
+    a measured result from a restaurant. Every figure was computed by the code
+    in this repository when the page was built.
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" data-p="p1">1 · Invoice ingestion</button>
+    <button class="tab" role="tab" data-p="p2">2 · Menu engineering</button>
+    <button class="tab" role="tab" data-p="p3">3 · Labor forecast</button>
+    <button class="tab" role="tab" data-p="p4">Governance &amp; scope</button>
+  </div>
+
+  <!-- ── Layer 1 ─────────────────────────────────────────────────── -->
+  <section id="p1" class="hide">
+    <div class="panel">
+      <h2>Layer 1 — Automated invoice ingestion</h2>
+      <div class="sub">White Paper §3.2. Each line is matched to an inventory
+        SKU and routed by two gates: match confidence and price variance.</div>
+      <div style="margin:14px 0">
+        <label for="invsel" class="sub">Demo invoice:</label><br>
+        <select id="invsel" style="margin-top:6px;min-width:340px"></select>
+      </div>
+      <div class="grid" id="invstats"></div>
+      <div class="scroll" style="margin-top:16px">
+        <table>
+          <thead><tr>
+            <th>Line item</th><th>SKU</th><th class="num">Conf.</th>
+            <th class="num">Unit $</th><th class="num">Change</th><th>Outcome</th>
+          </tr></thead>
+          <tbody id="invrows"></tbody>
+        </table>
+      </div>
+      <details style="margin-top:16px">
+        <summary class="sub" style="cursor:pointer">Show the raw invoice text this was parsed from</summary>
+        <pre class="src" id="invsrc" style="margin-top:10px"></pre>
+      </details>
+    </div>
+  </section>
+
+  <!-- ── Layer 2 ─────────────────────────────────────────────────── -->
+  <section id="p2" class="hide">
+    <div class="panel">
+      <h2>Layer 2 — Dynamic menu engineering</h2>
+      <div class="sub">White Paper §3.3. Food cost % is recomputed from current
+        recorded ingredient costs; items above the threshold get a suggested price.</div>
+
+      <div class="banner" style="margin-top:14px">
+        <strong>The gate in action.</strong> Cost increases above 5% are held
+        until a manager confirms them, so they cannot move a price on their own.
+        Use the toggle to see the same menu before and after confirmation.
+      </div>
+
+      <div style="margin:14px 0">
+        <button class="act" id="beforeBtn">Before confirmation</button>
+        <button class="act" id="afterBtn">After manager confirmation</button>
+      </div>
+
+      <div class="grid" id="pricestats"></div>
+      <div id="pendingBox" style="margin-top:16px"></div>
+      <div id="recs" style="margin-top:8px"></div>
+
+      <div class="scroll" style="margin-top:18px">
+        <h3>All menu items</h3>
+        <table>
+          <thead><tr>
+            <th>Item</th><th class="num">Menu $</th><th class="num">Plate cost</th>
+            <th class="num">Food cost %</th><th>Status</th>
+          </tr></thead>
+          <tbody id="allitems"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Layer 3 ─────────────────────────────────────────────────── -->
+  <section id="p3" class="hide">
+    <div class="panel">
+      <h2>Layer 3 — Predictive labor scheduling</h2>
+      <div class="sub" id="laborsub"></div>
+      <div class="banner" style="margin-top:14px">
+        <strong>This is an untrained baseline, not the model in §3.4.</strong>
+        It multiplies the trailing average by a day-of-week index computed from
+        the same window. No event, weather, or holiday signal is used, and
+        <strong>no accuracy figure is claimed</strong> — no backtest has been run.
+        <div style="margin-top:9px" id="staffassume"></div>
+      </div>
+      <div class="bars" id="bars"></div>
+      <div class="scroll" style="margin-top:14px">
+        <table>
+          <thead><tr>
+            <th>Date</th><th>Day</th><th class="num">Covers</th><th class="num">DoW index</th>
+            <th class="num">FOH</th><th class="num">BOH</th><th>Why</th>
+          </tr></thead>
+          <tbody id="laborrows"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Governance ──────────────────────────────────────────────── -->
+  <section id="p4" class="hide">
+    <div class="panel">
+      <h2>Governance &amp; honest scope</h2>
+      <h3 style="margin-top:14px">Built and verified in this repository</h3>
+      <ul class="tight">
+        <li>Invoice text parsing into structured line items</li>
+        <li>Fuzzy SKU matching (rapidfuzz token-set, case-folded)</li>
+        <li>The three routing gates of §3.2, with a stated reason on every line</li>
+        <li>Recipe costing, food cost %, and price recommendation (§3.3)</li>
+        <li>Manager approval gate — a cost cannot reach pricing without it (§3.1)</li>
+        <li>Seasonal-naive 7-day labor baseline (§3.4, partial)</li>
+        <li>Append-only audit log, enforced by database trigger</li>
+      </ul>
+      <h3 style="margin-top:16px">Not built — future work</h3>
+      <ul class="tight">
+        <li><strong>OCR.</strong> §3.2 specifies a fine-tuned transformer for
+          invoice recognition. None is trained. This demo parses a text layer,
+          recorded as <code>extraction_method</code>. No OCR accuracy is claimed.</li>
+        <li><strong>Live POS integration.</strong> Toast and Clover REST/webhook
+          integration is not implemented; Phase 1 is file-based.</li>
+        <li><strong>Trained forecaster.</strong> §3.4 specifies a trained
+          time-series model with event and weather signals. Not built.</li>
+        <li><strong>Pilot validation.</strong> §4.1 and §7 describe a 10-location
+          Early Adopter pilot as future work. It has not been run, so this
+          repository contains no pilot metrics of any kind.</li>
+      </ul>
+      <h3 style="margin-top:16px">Audit trail from this build</h3>
+      <div class="scroll">
+        <table><thead><tr><th>Action</th><th class="num">Count</th></tr></thead>
+        <tbody id="auditrows"></tbody></table>
+      </div>
+    </div>
+  </section>
+
+  <div class="foot" id="foot"></div>
+</div>
+
+<script>
+// The build script replaces the quoted token below with the JSON payload, so
+// this line stays valid JavaScript both before and after assembly.
+const DATA = {"meta": {"version": "0.2.0", "doi": "10.13140/RG.2.2.33391.60326", "engine_version": "3f01fda", "built_at": "2026-08-08 11:14 UTC", "synthetic": true}, "thresholds": {"match_confidence": 0.8, "price_variance": 0.05, "food_cost_alert": 0.32, "food_cost_target": 0.28}, "invoices": [{"invoice_id": "d8e8e97d-fdff-4d5f-bc85-b5a2795d7511", "source_path": "data/demo/invoice_usfoods_2026-03-14.txt", "supplier_name": "US Foods", "invoice_number": "DEMO-4471902", "invoice_date": "2026-03-14", "extraction_method": "text_layer", "is_demo": true, "items_extracted": 5, "items_matched": 4, "routing_counts": {"auto_sync": 3, "manager_confirmation": 1, "manual_review": 1}, "requires_manager_action": true, "total_extracted": 425.42, "line_items": [{"raw_text": "CHK-BREAST-5LB     CHICKEN BREAST BNLS SKNLS 5LB                CS       4        22.50      90.00", "ingredient_name": "CHICKEN BREAST BNLS SKNLS 5LB", "quantity": 4.0, "unit": "CS", "unit_price": 22.5, "total_price": 90.0, "supplier_code": "CHK-BREAST-5LB", "matched_sku": "CHK-BREAST-5LB", "match_confidence": 1.0, "routing": "manager_confirmation", "routing_reason": "Unit price increase of 18.5% ($18.99 -> $22.50) exceeds the 5% variance gate (White Paper \u00a73.2, \u00a75.2).", "previous_unit_price": 18.99, "price_change_pct": 18.5}, {"raw_text": "VEG-TOMATO-ROMA    ROMA TOMATOES 25LB CASE                      CS       2        18.99      37.98", "ingredient_name": "ROMA TOMATOES 25LB CASE", "quantity": 2.0, "unit": "CS", "unit_price": 18.99, "total_price": 37.98, "supplier_code": "VEG-TOMATO-ROMA", "matched_sku": "VEG-TOMATO-ROMA", "match_confidence": 1.0, "routing": "auto_sync", "routing_reason": "Match 100.0% and price change +2.6% is within the 5% gate; safe to sync automatically.", "previous_unit_price": 18.5, "price_change_pct": 2.6}, {"raw_text": "OIL-EVOO-1GAL      EXTRA VIRGIN OLIVE OIL 1 GALLON              EA       6        24.99     149.94", "ingredient_name": "EXTRA VIRGIN OLIVE OIL 1 GALLON", "quantity": 6.0, "unit": "EA", "unit_price": 24.99, "total_price": 149.94, "supplier_code": "OIL-EVOO-1GAL", "matched_sku": "OIL-EVOO-1GAL", "match_confidence": 1.0, "routing": "auto_sync", "routing_reason": "Match 100.0% and price change +0.0% is within the 5% gate; safe to sync automatically.", "previous_unit_price": 24.99, "price_change_pct": 0.0}, {"raw_text": "DRY-FLOUR-AP-50    ALL PURPOSE FLOUR 50LB BAG                   EA       3        19.50      58.50", "ingredient_name": "ALL PURPOSE FLOUR 50LB BAG", "quantity": 3.0, "unit": "EA", "unit_price": 19.5, "total_price": 58.5, "supplier_code": "DRY-FLOUR-AP-50", "matched_sku": "DRY-FLOUR-AP-50", "match_confidence": 1.0, "routing": "auto_sync", "routing_reason": "Match 100.0% and price change +2.6% is within the 5% gate; safe to sync automatically.", "previous_unit_price": 19.0, "price_change_pct": 2.6}, {"raw_text": "SAFFRON THREADS SPANISH GRADE A 1OZ          EA       1        89.00      89.00", "ingredient_name": "SAFFRON THREADS SPANISH GRADE A 1OZ", "quantity": 1.0, "unit": "EA", "unit_price": 89.0, "total_price": 89.0, "supplier_code": null, "matched_sku": null, "match_confidence": 0.4138, "routing": "manual_review", "routing_reason": "SKU match confidence 41.4% is below the 80% threshold (White Paper \u00a73.2).", "previous_unit_price": 22.0, "price_change_pct": null}], "filename": "invoice_usfoods_2026-03-14.txt", "source_text": "=========================================================================\n  [DEMO DATA - ILLUSTRATIVE ONLY]\n  This is a synthetic invoice written for this repository to exercise the\n  Layer 1 parser. It is NOT a real supplier invoice, NOT real pricing, and\n  NOT from a real customer of any named distributor. \"US Foods\" appears\n  here only as a realistic format label.\n=========================================================================\nSupplier: US Foods\nInvoice #: DEMO-4471902\nDate: 2026-03-14\nShip To: Bella Vista Trattoria [DEMO RESTAURANT - NOT A REAL BUSINESS]\n\nITEM CODE          DESCRIPTION                                  UNIT   QTY   UNIT PRICE   EXTENDED\nCHK-BREAST-5LB     CHICKEN BREAST BNLS SKNLS 5LB                CS       4        22.50      90.00\nVEG-TOMATO-ROMA    ROMA TOMATOES 25LB CASE                      CS       2        18.99      37.98\nOIL-EVOO-1GAL      EXTRA VIRGIN OLIVE OIL 1 GALLON              EA       6        24.99     149.94\nDRY-FLOUR-AP-50    ALL PURPOSE FLOUR 50LB BAG                   EA       3        19.50      58.50\n                   SAFFRON THREADS SPANISH GRADE A 1OZ          EA       1        89.00      89.00\n\n                                                          INVOICE TOTAL      425.42\n\nPayment terms: Net 30. Questions: this is demo data; there is no real account.\n"}, {"invoice_id": "e95038ec-1290-476c-b9bc-7b2d95225458", "source_path": "data/demo/invoice_sysco_2026-03-21.txt", "supplier_name": "Sysco Corporation", "invoice_number": "DEMO-8830571", "invoice_date": "2026-03-21", "extraction_method": "text_layer", "is_demo": true, "items_extracted": 5, "items_matched": 4, "routing_counts": {"auto_sync": 2, "manager_confirmation": 2, "manual_review": 1}, "requires_manager_action": true, "total_extracted": 481.6, "line_items": [{"raw_text": "PRO-BEEF-GRND-10   GROUND BEEF 80/20 10LB                       CS       3        37.00     111.00", "ingredient_name": "GROUND BEEF 80/20 10LB", "quantity": 3.0, "unit": "CS", "unit_price": 37.0, "total_price": 111.0, "supplier_code": "PRO-BEEF-GRND-10", "matched_sku": "PRO-BEEF-GRND-10", "match_confidence": 1.0, "routing": "manager_confirmation", "routing_reason": "Unit price decrease of 11.9% ($42.00 -> $37.00) exceeds the 5% variance gate (White Paper \u00a73.2, \u00a75.2).", "previous_unit_price": 42.0, "price_change_pct": -11.9}, {"raw_text": "CHZ-MOZZ-5LB       MOZZARELLA WHOLE MILK 5LB                    CS       4        21.40      85.60", "ingredient_name": "MOZZARELLA WHOLE MILK 5LB", "quantity": 4.0, "unit": "CS", "unit_price": 21.4, "total_price": 85.6, "supplier_code": "CHZ-MOZZ-5LB", "matched_sku": "CHZ-MOZZ-5LB", "match_confidence": 1.0, "routing": "auto_sync", "routing_reason": "Match 100.0% and price change +1.9% is within the 5% gate; safe to sync automatically.", "previous_unit_price": 21.0, "price_change_pct": 1.9}, {"raw_text": "VEG-ROMAINE-24     ROMAINE HEARTS 24CT CASE                     CS       2        41.00      82.00", "ingredient_name": "ROMAINE HEARTS 24CT CASE", "quantity": 2.0, "unit": "CS", "unit_price": 41.0, "total_price": 82.0, "supplier_code": "VEG-ROMAINE-24", "matched_sku": "VEG-ROMAINE-24", "match_confidence": 1.0, "routing": "manager_confirmation", "routing_reason": "Unit price increase of 28.1% ($32.00 -> $41.00) exceeds the 5% variance gate (White Paper \u00a73.2, \u00a75.2).", "previous_unit_price": 32.0, "price_change_pct": 28.1}, {"raw_text": "SEA-SHRIMP-2LB     SHRIMP 16/20 P&D 2LB                         EA       5        27.90     139.50", "ingredient_name": "SHRIMP 16/20 P&D 2LB", "quantity": 5.0, "unit": "EA", "unit_price": 27.9, "total_price": 139.5, "supplier_code": "SEA-SHRIMP-2LB", "matched_sku": "SEA-SHRIMP-2LB", "match_confidence": 1.0, "routing": "auto_sync", "routing_reason": "Match 100.0% and price change +1.5% is within the 5% gate; safe to sync automatically.", "previous_unit_price": 27.5, "price_change_pct": 1.5}, {"raw_text": "TRUFFLE OIL WHITE 250ML                      EA       2        31.75      63.50", "ingredient_name": "TRUFFLE OIL WHITE 250ML", "quantity": 2.0, "unit": "EA", "unit_price": 31.75, "total_price": 63.5, "supplier_code": null, "matched_sku": null, "match_confidence": 0.5, "routing": "manual_review", "routing_reason": "SKU match confidence 50.0% is below the 80% threshold (White Paper \u00a73.2).", "previous_unit_price": 21.0, "price_change_pct": null}], "filename": "invoice_sysco_2026-03-21.txt", "source_text": "=========================================================================\n  [DEMO DATA - ILLUSTRATIVE ONLY]\n  Synthetic invoice written for this repository. Not a real supplier\n  invoice and not real pricing. \"Sysco\" appears only as a format label.\n=========================================================================\nSupplier: Sysco Corporation\nInvoice #: DEMO-8830571\nDate: 2026-03-21\nShip To: Bella Vista Trattoria [DEMO RESTAURANT - NOT A REAL BUSINESS]\n\nITEM CODE          DESCRIPTION                                  UNIT   QTY   UNIT PRICE   EXTENDED\nPRO-BEEF-GRND-10   GROUND BEEF 80/20 10LB                       CS       3        37.00     111.00\nCHZ-MOZZ-5LB       MOZZARELLA WHOLE MILK 5LB                    CS       4        21.40      85.60\nVEG-ROMAINE-24     ROMAINE HEARTS 24CT CASE                     CS       2        41.00      82.00\nSEA-SHRIMP-2LB     SHRIMP 16/20 P&D 2LB                         EA       5        27.90     139.50\n                   TRUFFLE OIL WHITE 250ML                      EA       2        31.75      63.50\n\n                                                          INVOICE TOTAL      481.60\n"}, {"invoice_id": "485b0f6a-8066-4031-ac38-603d82708e5c", "source_path": "data/demo/invoice_localproduce_2026-03-28.txt", "supplier_name": "Valley Local Produce Co", "invoice_number": "DEMO-2026-0328", "invoice_date": "2026-03-28", "extraction_method": "text_layer", "is_demo": true, "items_extracted": 4, "items_matched": 3, "routing_counts": {"auto_sync": 3, "manager_confirmation": 0, "manual_review": 1}, "requires_manager_action": true, "total_extracted": 185.65, "line_items": [{"raw_text": "ROMA TOMATOES 25LB CASE                      CS       3        19.25      57.75", "ingredient_name": "ROMA TOMATOES 25LB CASE", "quantity": 3.0, "unit": "CS", "unit_price": 19.25, "total_price": 57.75, "supplier_code": null, "matched_sku": "VEG-TOMATO-ROMA", "match_confidence": 1.0, "routing": "auto_sync", "routing_reason": "Match 100.0% and price change +1.4% is within the 5% gate; safe to sync automatically.", "previous_unit_price": 18.99, "price_change_pct": 1.4}, {"raw_text": "EXTRA VIRGIN OLIVE OIL 1 GALLON              EA       2        25.40      50.80", "ingredient_name": "EXTRA VIRGIN OLIVE OIL 1 GALLON", "quantity": 2.0, "unit": "EA", "unit_price": 25.4, "total_price": 50.8, "supplier_code": null, "matched_sku": "OIL-EVOO-1GAL", "match_confidence": 1.0, "routing": "auto_sync", "routing_reason": "Match 100.0% and price change +1.6% is within the 5% gate; safe to sync automatically.", "previous_unit_price": 24.99, "price_change_pct": 1.6}, {"raw_text": "ROMAINE HEARTS 24CT CASE                     CS       1        33.10      33.10", "ingredient_name": "ROMAINE HEARTS 24CT CASE", "quantity": 1.0, "unit": "CS", "unit_price": 33.1, "total_price": 33.1, "supplier_code": null, "matched_sku": "VEG-ROMAINE-24", "match_confidence": 1.0, "routing": "auto_sync", "routing_reason": "Match 100.0% and price change +3.4% is within the 5% gate; safe to sync automatically.", "previous_unit_price": 32.0, "price_change_pct": 3.4}, {"raw_text": "MIXED SEASONAL BOX                           EA       1        44.00      44.00", "ingredient_name": "MIXED SEASONAL BOX", "quantity": 1.0, "unit": "EA", "unit_price": 44.0, "total_price": 44.0, "supplier_code": null, "matched_sku": null, "match_confidence": 0.5, "routing": "manual_review", "routing_reason": "SKU match confidence 50.0% is below the 80% threshold (White Paper \u00a73.2).", "previous_unit_price": 24.0, "price_change_pct": null}], "filename": "invoice_localproduce_2026-03-28.txt", "source_text": "=========================================================================\n  [DEMO DATA - ILLUSTRATIVE ONLY]\n  Synthetic invoice written for this repository. Not a real supplier\n  invoice and not real pricing.\n\n  This one deliberately has NO supplier item-code column - the format used\n  by many small local suppliers. It exercises the fuzzy name matcher,\n  which has to carry the whole matching load with no code to short-circuit\n  on. Line 4 is intentionally ambiguous.\n=========================================================================\nSupplier: Valley Local Produce Co\nInvoice #: DEMO-2026-0328\nDate: 2026-03-28\nShip To: Bella Vista Trattoria [DEMO RESTAURANT - NOT A REAL BUSINESS]\n\nDESCRIPTION                                  UNIT   QTY   UNIT PRICE   EXTENDED\nROMA TOMATOES 25LB CASE                      CS       3        19.25      57.75\nEXTRA VIRGIN OLIVE OIL 1 GALLON              EA       2        25.40      50.80\nROMAINE HEARTS 24CT CASE                     CS       1        33.10      33.10\nMIXED SEASONAL BOX                           EA       1        44.00      44.00\n\n                                       INVOICE TOTAL      185.65\n"}], "pending_confirmations": [{"sku": "CHK-BREAST-5LB", "ingredient": "CHICKEN BREAST BNLS SKNLS 5LB", "previous_unit_price": 18.99, "new_unit_price": 22.5, "change_pct": 18.5, "reason": "Unit price increase of 18.5% ($18.99 -> $22.50) exceeds the 5% variance gate (White Paper \u00a73.2, \u00a75.2)."}, {"sku": "PRO-BEEF-GRND-10", "ingredient": "GROUND BEEF 80/20 10LB", "previous_unit_price": 42.0, "new_unit_price": 37.0, "change_pct": -11.9, "reason": "Unit price decrease of 11.9% ($42.00 -> $37.00) exceeds the 5% variance gate (White Paper \u00a73.2, \u00a75.2)."}, {"sku": "VEG-ROMAINE-24", "ingredient": "ROMAINE HEARTS 24CT CASE", "previous_unit_price": 32.0, "new_unit_price": 41.0, "change_pct": 28.1, "reason": "Unit price increase of 28.1% ($32.00 -> $41.00) exceeds the 5% variance gate (White Paper \u00a73.2, \u00a75.2)."}], "pricing_before": {"total_menu_items": 12, "items_above_threshold": 1, "items_within_threshold": 11, "threshold_pct": 32.0, "target_pct": 28.0, "autonomous_execution_enabled": false, "governance_note": "All recommendations are advisory. A.C.E. does not change menu prices without manager confirmation (White Paper \u00a73.1, \u00a73.3).", "items": [{"recipe_id": "05f183aa-21a9-4845-a33f-6b154a6ab29f", "item_name": "Chicken Parmigiana", "menu_price": 21.99, "recipe_cost": 7.062, "food_cost_pct": 32.1, "threshold_pct": 32.0, "target_pct": 28.0, "above_threshold": true, "suggested_price": 25.22, "price_delta": 3.23, "rationale": "Chicken Breast Boneless Skinless 5lb at $18.99/unit contributes $4.75 of the $7.06 plate cost. Total plate cost $7.06 against a $21.99 menu price puts food cost at 32.1%, above the 32% threshold. Repricing to $25.22 (+3.23) restores the 28% target ($7.06 / 0.28). Advisory only - manager approval required before any price change.", "cost_breakdown": [{"sku": "CHK-BREAST-5LB", "name": "Chicken Breast Boneless Skinless 5lb", "qty_per_serving": 0.25, "unit_price": 18.99, "cost": 4.7475}, {"sku": "CHZ-MOZZ-5LB", "name": "Mozzarella Whole Milk 5lb", "qty_per_serving": 0.055, "unit_price": 21.4, "cost": 1.177}, {"sku": "VEG-TOMATO-ROMA", "name": "Roma Tomatoes 25lb Case", "qty_per_serving": 0.03, "unit_price": 19.25, "cost": 0.5775}, {"sku": "CHZ-PARM-2LB", "name": "Parmigiano Reggiano 2lb", "qty_per_serving": 0.02, "unit_price": 28.0, "cost": 0.56}]}, {"recipe_id": "8e0057a5-5285-459a-96df-a4a9cfe20421", "item_name": "Chicken Pesto Pasta", "menu_price": 18.99, "recipe_cost": 5.6696, "food_cost_pct": 29.9, "threshold_pct": 32.0, "target_pct": 28.0, "above_threshold": false, "suggested_price": null, "price_delta": null, "rationale": "Food cost is 29.9%, within the 32% threshold. No action required. Largest cost driver: Chicken Breast Boneless Skinless 5lb at $18.99/unit contributes $4.23 of the $5.67 plate cost.", "cost_breakdown": [{"sku": "CHK-BREAST-5LB", "name": "Chicken Breast Boneless Skinless 5lb", "qty_per_serving": 0.223, "unit_price": 18.99, "cost": 4.2348}, {"sku": "DRY-PASTA-20LB", "name": "Dry Pasta Assorted 20lb", "qty_per_serving": 0.035, "unit_price": 22.0, "cost": 0.77}, {"sku": "VEG-BASIL-1LB", "name": "Fresh Basil 1lb", "qty_per_serving": 0.03, "unit_price": 12.0, "cost": 0.36}, {"sku": "OIL-EVOO-1GAL", "name": "Extra Virgin Olive Oil 1 Gallon", "qty_per_serving": 0.012, "unit_price": 25.4, "cost": 0.3048}]}, {"recipe_id": "9d443d62-fe90-495b-b340-429485563a44", "item_name": "Grilled Chicken Sandwich", "menu_price": 14.99, "recipe_cost": 4.4139, "food_cost_pct": 29.4, "threshold_pct": 32.0, "target_pct": 28.0, "above_threshold": false, "suggested_price": null, "price_delta": null, "rationale": "Food cost is 29.4%, within the 32% threshold. No action required. Largest cost driver: Chicken Breast Boneless Skinless 5lb at $18.99/unit contributes $3.99 of the $4.41 plate cost.", "cost_breakdown": [{"sku": "CHK-BREAST-5LB", "name": "Chicken Breast Boneless Skinless 5lb", "qty_per_serving": 0.21, "unit_price": 18.99, "cost": 3.9879}, {"sku": "VEG-TOMATO-ROMA", "name": "Roma Tomatoes 25lb Case", "qty_per_serving": 0.012, "unit_price": 19.25, "cost": 0.231}, {"sku": "DRY-FLOUR-AP-50", "name": "All Purpose Flour 50lb Bag", "qty_per_serving": 0.01, "unit_price": 19.5, "cost": 0.195}]}, {"recipe_id": "05033178-2bdb-4c6d-913f-1a554f3a3c60", "item_name": "Bolognese Rigatoni", "menu_price": 19.49, "recipe_cost": 5.094, "food_cost_pct": 26.1, "threshold_pct": 32.0, "target_pct": 28.0, "above_threshold": false, "suggested_price": null, "price_delta": null, "rationale": "Food cost is 26.1%, within the 32% threshold. No action required. Largest cost driver: Ground Beef 80/20 10lb at $42.00/unit contributes $2.94 of the $5.09 plate cost.", "cost_breakdown": [{"sku": "PRO-BEEF-GRND-10", "name": "Ground Beef 80/20 10lb", "qty_per_serving": 0.07, "unit_price": 42.0, "cost": 2.94}, {"sku": "DRY-PASTA-20LB", "name": "Dry Pasta Assorted 20lb", "qty_per_serving": 0.04, "unit_price": 22.0, "cost": 0.88}, {"sku": "VEG-TOMATO-ROMA", "name": "Roma Tomatoes 25lb Case", "qty_per_serving": 0.04, "unit_price": 19.25, "cost": 0.77}, {"sku": "CHZ-PARM-2LB", "name": "Parmigiano Reggiano 2lb", "qty_per_serving": 0.018, "unit_price": 28.0, "cost": 0.504}]}, {"recipe_id": "98c90b7a-9865-4074-84f9-bc0e0ac5e299", "item_name": "Classic Cheeseburger", "menu_price": 16.49, "recipe_cost": 4.2757, "food_cost_pct": 25.9, "threshold_pct": 32.0, "target_pct": 28.0, "above_threshold": false, "suggested_price": null, "price_delta": null, "rationale": "Food cost is 25.9%, within the 32% threshold. No action required. Largest cost driver: Ground Beef 80/20 10lb at $42.00/unit contributes $3.15 of the $4.28 plate cost.", "cost_breakdown": [{"sku": "PRO-BEEF-GRND-10", "name": "Ground Beef 80/20 10lb", "qty_per_serving": 0.075, "unit_price": 42.0, "cost": 3.15}, {"sku": "CHZ-MOZZ-5LB", "name": "Mozzarella Whole Milk 5lb", "qty_per_serving": 0.03, "unit_price": 21.4, "cost": 0.642}, {"sku": "VEG-TOMATO-ROMA", "name": "Roma Tomatoes 25lb Case", "qty_per_serving": 0.015, "unit_price": 19.25, "cost": 0.2888}, {"sku": "DRY-FLOUR-AP-50", "name": "All Purpose Flour 50lb Bag", "qty_per_serving": 0.01, "unit_price": 19.5, "cost": 0.195}]}, {"recipe_id": "4bad9ce7-0b73-4b0c-b0b0-683a0240942a", "item_name": "Shrimp Scampi", "menu_price": 24.99, "recipe_cost": 6.3452, "food_cost_pct": 25.4, "threshold_pct": 32.0, "target_pct": 28.0, "above_threshold": false, "suggested_price": null, "price_delta": null, "rationale": "Food cost is 25.4%, within the 32% threshold. No action required. Largest cost driver: Shrimp 16/20 Peeled Deveined 2lb at $27.90/unit contributes $5.02 of the $6.35 plate cost.", "cost_breakdown": [{"sku": "SEA-SHRIMP-2LB", "name": "Shrimp 16/20 Peeled Deveined 2lb", "qty_per_serving": 0.18, "unit_price": 27.9, "cost": 5.022}, {"sku": "DRY-PASTA-20LB", "name": "Dry Pasta Assorted 20lb", "qty_per_serving": 0.035, "unit_price": 22.0, "cost": 0.77}, {"sku": "OIL-EVOO-1GAL", "name": "Extra Virgin Olive Oil 1 Gallon", "qty_per_serving": 0.018, "unit_price": 25.4, "cost": 0.4572}, {"sku": "VEG-BASIL-1LB", "name": "Fresh Basil 1lb", "qty_per_serving": 0.008, "unit_price": 12.0, "cost": 0.096}]}, {"recipe_id": "67e289bb-54d9-4bd5-8a77-5d587c5fd8d8", "item_name": "Caprese Salad", "menu_price": 13.49, "recipe_cost": 2.8367, "food_cost_pct": 21.0, "threshold_pct": 32.0, "target_pct": 28.0, "above_threshold": false, "suggested_price": null, "price_delta": null, "rationale": "Food cost is 21.0%, within the 32% threshold. No action required. Largest cost driver: Mozzarella Whole Milk 5lb at $21.40/unit contributes $1.28 of the $2.84 plate cost.", "cost_breakdown": [{"sku": "CHZ-MOZZ-5LB", "name": "Mozzarella Whole Milk 5lb", "qty_per_serving": 0.06, "unit_price": 21.4, "cost": 1.284}, {"sku": "VEG-TOMATO-ROMA", "name": "Roma Tomatoes 25lb Case", "qty_per_serving": 0.055, "unit_price": 19.25, "cost": 1.0588}, {"sku": "OIL-EVOO-1GAL", "name": "Extra Virgin Olive Oil 1 Gallon", "qty_per_serving": 0.01, "unit_price": 25.4, "cost": 0.254}, {"sku": "VEG-BASIL-1LB", "name": "Fresh Basil 1lb", "qty_per_serving": 0.02, "unit_price": 12.0, "cost": 0.24}]}, {"recipe_id": "cc5efd11-65e2-4079-99ac-f2a1a50e0706", "item_name": "Carbonara", "menu_price": 19.99, "recipe_cost": 4.196, "food_cost_pct": 21.0, "threshold_pct": 32.0, "target_pct": 28.0, "above_threshold": false, "suggested_price": null, "price_delta": null, "rationale": "Food cost is 21.0%, within the 32% threshold. No action required. Largest cost driver: Pancetta Diced 2lb at $24.00/unit contributes $2.52 of the $4.20 plate cost.", "cost_breakdown": [{"sku": "PRO-PANCETTA-2LB", "name": "Pancetta Diced 2lb", "qty_per_serving": 0.105, "unit_price": 24.0, "cost": 2.52}, {"sku": "CHZ-PARM-2LB", "name": "Parmigiano Reggiano 2lb", "qty_per_serving": 0.03, "unit_price": 28.0, "cost": 0.84}, {"sku": "DRY-PASTA-20LB", "name": "Dry Pasta Assorted 20lb", "qty_per_serving": 0.038, "unit_price": 22.0, "cost": 0.836}]}, {"recipe_id": "31b0cd7d-1ccb-4a71-ab70-1881856a12f8", "item_name": "Caesar Salad", "menu_price": 11.99, "recipe_cost": 2.4437, "food_cost_pct": 20.4, "threshold_pct": 32.0, "target_pct": 28.0, "above_threshold": false, "suggested_price": null, "price_delta": null, "rationale": "Food cost is 20.4%, within the 32% threshold. No action required. Largest cost driver: Romaine Hearts 24ct Case at $33.10/unit contributes $1.82 of the $2.44 plate cost.", "cost_breakdown": [{"sku": "VEG-ROMAINE-24", "name": "Romaine Hearts 24ct Case", "qty_per_serving": 0.055, "unit_price": 33.1, "cost": 1.8205}, {"sku": "CHZ-PARM-2LB", "name": "Parmigiano Reggiano 2lb", "qty_per_serving": 0.015, "unit_price": 28.0, "cost": 0.42}, {"sku": "OIL-EVOO-1GAL", "name": "Extra Virgin Olive Oil 1 Gallon", "qty_per_serving": 0.008, "unit_price": 25.4, "cost": 0.2032}]}, {"recipe_id": "92b7de54-6cb4-4a2f-9db5-53cddf3f20c5", "item_name": "Side Caesar", "menu_price": 6.49, "recipe_cost": 1.217, "food_cost_pct": 18.8, "threshold_pct": 32.0, "target_pct": 28.0, "above_threshold": false, "suggested_price": null, "price_delta": null, "rationale": "Food cost is 18.8%, within the 32% threshold. No action required. Largest cost driver: Romaine Hearts 24ct Case at $33.10/unit contributes $0.99 of the $1.22 plate cost.", "cost_breakdown": [{"sku": "VEG-ROMAINE-24", "name": "Romaine Hearts 24ct Case", "qty_per_serving": 0.03, "unit_price": 33.1, "cost": 0.993}, {"sku": "CHZ-PARM-2LB", "name": "Parmigiano Reggiano 2lb", "qty_per_serving": 0.008, "unit_price": 28.0, "cost": 0.224}]}, {"recipe_id": "26b7f6b9-74b6-46bd-bd23-d7d5cecf66b5", "item_name": "Margherita Pizza 10in", "menu_price": 15.99, "recipe_cost": 2.8731, "food_cost_pct": 18.0, "threshold_pct": 32.0, "target_pct": 28.0, "above_threshold": false, "suggested_price": null, "price_delta": null, "rationale": "Food cost is 18.0%, within the 32% threshold. No action required. Largest cost driver: Mozzarella Whole Milk 5lb at $21.40/unit contributes $1.50 of the $2.87 plate cost.", "cost_breakdown": [{"sku": "CHZ-MOZZ-5LB", "name": "Mozzarella Whole Milk 5lb", "qty_per_serving": 0.07, "unit_price": 21.4, "cost": 1.498}, {"sku": "VEG-TOMATO-ROMA", "name": "Roma Tomatoes 25lb Case", "qty_per_serving": 0.035, "unit_price": 19.25, "cost": 0.6738}, {"sku": "DRY-FLOUR-AP-50", "name": "All Purpose Flour 50lb Bag", "qty_per_serving": 0.022, "unit_price": 19.5, "cost": 0.429}, {"sku": "OIL-EVOO-1GAL", "name": "Extra Virgin Olive Oil 1 Gallon", "qty_per_serving": 0.006, "unit_price": 25.4, "cost": 0.1524}, {"sku": "VEG-BASIL-1LB", "name": "Fresh Basil 1lb", "qty_per_serving": 0.01, "unit_price": 12.0, "cost": 0.12}]}, {"recipe_id": "086ee699-3a32-44a1-a396-e993f412c0b6", "item_name": "Garlic Focaccia", "menu_price": 7.99, "recipe_cost": 0.7066, "food_cost_pct": 8.8, "threshold_pct": 32.0, "target_pct": 28.0, "above_threshold": false, "suggested_price": null, "price_delta": null, "rationale": "Food cost is 8.8%, within the 32% threshold. No action required. Largest cost driver: Extra Virgin Olive Oil 1 Gallon at $25.40/unit contributes $0.36 of the $0.71 plate cost.", "cost_breakdown": [{"sku": "OIL-EVOO-1GAL", "name": "Extra Virgin Olive Oil 1 Gallon", "qty_per_serving": 0.014, "unit_price": 25.4, "cost": 0.3556}, {"sku": "DRY-FLOUR-AP-50", "name": "All Purpose Flour 50lb Bag", "qty_per_serving": 0.018, "unit_price": 19.5, "cost": 0.351}]}]}, "pricing_after": {"total_menu_items": 12, "items_above_threshold": 3, "items_within_threshold": 9, "threshold_pct": 32.0, "target_pct": 28.0, "autonomous_execution_enabled": false, "governance_note": "All recommendations are advisory. A.C.E. does not change menu prices without manager confirmation (White Paper \u00a73.1, \u00a73.3).", "items": [{"recipe_id": "05f183aa-21a9-4845-a33f-6b154a6ab29f", "item_name": "Chicken Parmigiana", "menu_price": 21.99, "recipe_cost": 7.9395, "food_cost_pct": 36.1, "threshold_pct": 32.0, "target_pct": 28.0, "above_threshold": true, "suggested_price": 28.36, "price_delta": 6.37, "rationale": "Chicken Breast Boneless Skinless 5lb at $22.50/unit contributes $5.62 of the $7.94 plate cost. Total plate cost $7.94 against a $21.99 menu price puts food cost at 36.1%, above the 32% threshold. Repricing to $28.36 (+6.37) restores the 28% target ($7.94 / 0.28). Advisory only - manager approval required before any price change.", "cost_breakdown": [{"sku": "CHK-BREAST-5LB", "name": "Chicken Breast Boneless Skinless 5lb", "qty_per_serving": 0.25, "unit_price": 22.5, "cost": 5.625}, {"sku": "CHZ-MOZZ-5LB", "name": "Mozzarella Whole Milk 5lb", "qty_per_serving": 0.055, "unit_price": 21.4, "cost": 1.177}, {"sku": "VEG-TOMATO-ROMA", "name": "Roma Tomatoes 25lb Case", "qty_per_serving": 0.03, "unit_price": 19.25, "cost": 0.5775}, {"sku": "CHZ-PARM-2LB", "name": "Parmigiano Reggiano 2lb", "qty_per_serving": 0.02, "unit_price": 28.0, "cost": 0.56}]}, {"recipe_id": "9d443d62-fe90-495b-b340-429485563a44", "item_name": "Grilled Chicken Sandwich", "menu_price": 14.99, "recipe_cost": 5.151, "food_cost_pct": 34.4, "threshold_pct": 32.0, "target_pct": 28.0, "above_threshold": true, "suggested_price": 18.4, "price_delta": 3.41, "rationale": "Chicken Breast Boneless Skinless 5lb at $22.50/unit contributes $4.72 of the $5.15 plate cost. Total plate cost $5.15 against a $14.99 menu price puts food cost at 34.4%, above the 32% threshold. Repricing to $18.40 (+3.41) restores the 28% target ($5.15 / 0.28). Advisory only - manager approval required before any price change.", "cost_breakdown": [{"sku": "CHK-BREAST-5LB", "name": "Chicken Breast Boneless Skinless 5lb", "qty_per_serving": 0.21, "unit_price": 22.5, "cost": 4.725}, {"sku": "VEG-TOMATO-ROMA", "name": "Roma Tomatoes 25lb Case", "qty_per_serving": 0.012, "unit_price": 19.25, "cost": 0.231}, {"sku": "DRY-FLOUR-AP-50", "name": "All Purpose Flour 50lb Bag", "qty_per_serving": 0.01, "unit_price": 19.5, "cost": 0.195}]}, {"recipe_id": "8e0057a5-5285-459a-96df-a4a9cfe20421", "item_name": "Chicken Pesto Pasta", "menu_price": 18.99, "recipe_cost": 6.4523, "food_cost_pct": 34.0, "threshold_pct": 32.0, "target_pct": 28.0, "above_threshold": true, "suggested_price": 23.04, "price_delta": 4.05, "rationale": "Chicken Breast Boneless Skinless 5lb at $22.50/unit contributes $5.02 of the $6.45 plate cost. Total plate cost $6.45 against a $18.99 menu price puts food cost at 34.0%, above the 32% threshold. Repricing to $23.04 (+4.05) restores the 28% target ($6.45 / 0.28). Advisory only - manager approval required before any price change.", "cost_breakdown": [{"sku": "CHK-BREAST-5LB", "name": "Chicken Breast Boneless Skinless 5lb", "qty_per_serving": 0.223, "unit_price": 22.5, "cost": 5.0175}, {"sku": "DRY-PASTA-20LB", "name": "Dry Pasta Assorted 20lb", "qty_per_serving": 0.035, "unit_price": 22.0, "cost": 0.77}, {"sku": "VEG-BASIL-1LB", "name": "Fresh Basil 1lb", "qty_per_serving": 0.03, "unit_price": 12.0, "cost": 0.36}, {"sku": "OIL-EVOO-1GAL", "name": "Extra Virgin Olive Oil 1 Gallon", "qty_per_serving": 0.012, "unit_price": 25.4, "cost": 0.3048}]}, {"recipe_id": "4bad9ce7-0b73-4b0c-b0b0-683a0240942a", "item_name": "Shrimp Scampi", "menu_price": 24.99, "recipe_cost": 6.3452, "food_cost_pct": 25.4, "threshold_pct": 32.0, "target_pct": 28.0, "above_threshold": false, "suggested_price": null, "price_delta": null, "rationale": "Food cost is 25.4%, within the 32% threshold. No action required. Largest cost driver: Shrimp 16/20 Peeled Deveined 2lb at $27.90/unit contributes $5.02 of the $6.35 plate cost.", "cost_breakdown": [{"sku": "SEA-SHRIMP-2LB", "name": "Shrimp 16/20 Peeled Deveined 2lb", "qty_per_serving": 0.18, "unit_price": 27.9, "cost": 5.022}, {"sku": "DRY-PASTA-20LB", "name": "Dry Pasta Assorted 20lb", "qty_per_serving": 0.035, "unit_price": 22.0, "cost": 0.77}, {"sku": "OIL-EVOO-1GAL", "name": "Extra Virgin Olive Oil 1 Gallon", "qty_per_serving": 0.018, "unit_price": 25.4, "cost": 0.4572}, {"sku": "VEG-BASIL-1LB", "name": "Fresh Basil 1lb", "qty_per_serving": 0.008, "unit_price": 12.0, "cost": 0.096}]}, {"recipe_id": "05033178-2bdb-4c6d-913f-1a554f3a3c60", "item_name": "Bolognese Rigatoni", "menu_price": 19.49, "recipe_cost": 4.744, "food_cost_pct": 24.3, "threshold_pct": 32.0, "target_pct": 28.0, "above_threshold": false, "suggested_price": null, "price_delta": null, "rationale": "Food cost is 24.3%, within the 32% threshold. No action required. Largest cost driver: Ground Beef 80/20 10lb at $37.00/unit contributes $2.59 of the $4.74 plate cost.", "cost_breakdown": [{"sku": "PRO-BEEF-GRND-10", "name": "Ground Beef 80/20 10lb", "qty_per_serving": 0.07, "unit_price": 37.0, "cost": 2.59}, {"sku": "DRY-PASTA-20LB", "name": "Dry Pasta Assorted 20lb", "qty_per_serving": 0.04, "unit_price": 22.0, "cost": 0.88}, {"sku": "VEG-TOMATO-ROMA", "name": "Roma Tomatoes 25lb Case", "qty_per_serving": 0.04, "unit_price": 19.25, "cost": 0.77}, {"sku": "CHZ-PARM-2LB", "name": "Parmigiano Reggiano 2lb", "qty_per_serving": 0.018, "unit_price": 28.0, "cost": 0.504}]}, {"recipe_id": "31b0cd7d-1ccb-4a71-ab70-1881856a12f8", "item_name": "Caesar Salad", "menu_price": 11.99, "recipe_cost": 2.8782, "food_cost_pct": 24.0, "threshold_pct": 32.0, "target_pct": 28.0, "above_threshold": false, "suggested_price": null, "price_delta": null, "rationale": "Food cost is 24.0%, within the 32% threshold. No action required. Largest cost driver: Romaine Hearts 24ct Case at $41.00/unit contributes $2.25 of the $2.88 plate cost.", "cost_breakdown": [{"sku": "VEG-ROMAINE-24", "name": "Romaine Hearts 24ct Case", "qty_per_serving": 0.055, "unit_price": 41.0, "cost": 2.255}, {"sku": "CHZ-PARM-2LB", "name": "Parmigiano Reggiano 2lb", "qty_per_serving": 0.015, "unit_price": 28.0, "cost": 0.42}, {"sku": "OIL-EVOO-1GAL", "name": "Extra Virgin Olive Oil 1 Gallon", "qty_per_serving": 0.008, "unit_price": 25.4, "cost": 0.2032}]}, {"recipe_id": "98c90b7a-9865-4074-84f9-bc0e0ac5e299", "item_name": "Classic Cheeseburger", "menu_price": 16.49, "recipe_cost": 3.9007, "food_cost_pct": 23.7, "threshold_pct": 32.0, "target_pct": 28.0, "above_threshold": false, "suggested_price": null, "price_delta": null, "rationale": "Food cost is 23.7%, within the 32% threshold. No action required. Largest cost driver: Ground Beef 80/20 10lb at $37.00/unit contributes $2.77 of the $3.90 plate cost.", "cost_breakdown": [{"sku": "PRO-BEEF-GRND-10", "name": "Ground Beef 80/20 10lb", "qty_per_serving": 0.075, "unit_price": 37.0, "cost": 2.775}, {"sku": "CHZ-MOZZ-5LB", "name": "Mozzarella Whole Milk 5lb", "qty_per_serving": 0.03, "unit_price": 21.4, "cost": 0.642}, {"sku": "VEG-TOMATO-ROMA", "name": "Roma Tomatoes 25lb Case", "qty_per_serving": 0.015, "unit_price": 19.25, "cost": 0.2888}, {"sku": "DRY-FLOUR-AP-50", "name": "All Purpose Flour 50lb Bag", "qty_per_serving": 0.01, "unit_price": 19.5, "cost": 0.195}]}, {"recipe_id": "92b7de54-6cb4-4a2f-9db5-53cddf3f20c5", "item_name": "Side Caesar", "menu_price": 6.49, "recipe_cost": 1.454, "food_cost_pct": 22.4, "threshold_pct": 32.0, "target_pct": 28.0, "above_threshold": false, "suggested_price": null, "price_delta": null, "rationale": "Food cost is 22.4%, within the 32% threshold. No action required. Largest cost driver: Romaine Hearts 24ct Case at $41.00/unit contributes $1.23 of the $1.45 plate cost.", "cost_breakdown": [{"sku": "VEG-ROMAINE-24", "name": "Romaine Hearts 24ct Case", "qty_per_serving": 0.03, "unit_price": 41.0, "cost": 1.23}, {"sku": "CHZ-PARM-2LB", "name": "Parmigiano Reggiano 2lb", "qty_per_serving": 0.008, "unit_price": 28.0, "cost": 0.224}]}, {"recipe_id": "67e289bb-54d9-4bd5-8a77-5d587c5fd8d8", "item_name": "Caprese Salad", "menu_price": 13.49, "recipe_cost": 2.8367, "food_cost_pct": 21.0, "threshold_pct": 32.0, "target_pct": 28.0, "above_threshold": false, "suggested_price": null, "price_delta": null, "rationale": "Food cost is 21.0%, within the 32% threshold. No action required. Largest cost driver: Mozzarella Whole Milk 5lb at $21.40/unit contributes $1.28 of the $2.84 plate cost.", "cost_breakdown": [{"sku": "CHZ-MOZZ-5LB", "name": "Mozzarella Whole Milk 5lb", "qty_per_serving": 0.06, "unit_price": 21.4, "cost": 1.284}, {"sku": "VEG-TOMATO-ROMA", "name": "Roma Tomatoes 25lb Case", "qty_per_serving": 0.055, "unit_price": 19.25, "cost": 1.0588}, {"sku": "OIL-EVOO-1GAL", "name": "Extra Virgin Olive Oil 1 Gallon", "qty_per_serving": 0.01, "unit_price": 25.4, "cost": 0.254}, {"sku": "VEG-BASIL-1LB", "name": "Fresh Basil 1lb", "qty_per_serving": 0.02, "unit_price": 12.0, "cost": 0.24}]}, {"recipe_id": "cc5efd11-65e2-4079-99ac-f2a1a50e0706", "item_name": "Carbonara", "menu_price": 19.99, "recipe_cost": 4.196, "food_cost_pct": 21.0, "threshold_pct": 32.0, "target_pct": 28.0, "above_threshold": false, "suggested_price": null, "price_delta": null, "rationale": "Food cost is 21.0%, within the 32% threshold. No action required. Largest cost driver: Pancetta Diced 2lb at $24.00/unit contributes $2.52 of the $4.20 plate cost.", "cost_breakdown": [{"sku": "PRO-PANCETTA-2LB", "name": "Pancetta Diced 2lb", "qty_per_serving": 0.105, "unit_price": 24.0, "cost": 2.52}, {"sku": "CHZ-PARM-2LB", "name": "Parmigiano Reggiano 2lb", "qty_per_serving": 0.03, "unit_price": 28.0, "cost": 0.84}, {"sku": "DRY-PASTA-20LB", "name": "Dry Pasta Assorted 20lb", "qty_per_serving": 0.038, "unit_price": 22.0, "cost": 0.836}]}, {"recipe_id": "26b7f6b9-74b6-46bd-bd23-d7d5cecf66b5", "item_name": "Margherita Pizza 10in", "menu_price": 15.99, "recipe_cost": 2.8731, "food_cost_pct": 18.0, "threshold_pct": 32.0, "target_pct": 28.0, "above_threshold": false, "suggested_price": null, "price_delta": null, "rationale": "Food cost is 18.0%, within the 32% threshold. No action required. Largest cost driver: Mozzarella Whole Milk 5lb at $21.40/unit contributes $1.50 of the $2.87 plate cost.", "cost_breakdown": [{"sku": "CHZ-MOZZ-5LB", "name": "Mozzarella Whole Milk 5lb", "qty_per_serving": 0.07, "unit_price": 21.4, "cost": 1.498}, {"sku": "VEG-TOMATO-ROMA", "name": "Roma Tomatoes 25lb Case", "qty_per_serving": 0.035, "unit_price": 19.25, "cost": 0.6738}, {"sku": "DRY-FLOUR-AP-50", "name": "All Purpose Flour 50lb Bag", "qty_per_serving": 0.022, "unit_price": 19.5, "cost": 0.429}, {"sku": "OIL-EVOO-1GAL", "name": "Extra Virgin Olive Oil 1 Gallon", "qty_per_serving": 0.006, "unit_price": 25.4, "cost": 0.1524}, {"sku": "VEG-BASIL-1LB", "name": "Fresh Basil 1lb", "qty_per_serving": 0.01, "unit_price": 12.0, "cost": 0.12}]}, {"recipe_id": "086ee699-3a32-44a1-a396-e993f412c0b6", "item_name": "Garlic Focaccia", "menu_price": 7.99, "recipe_cost": 0.7066, "food_cost_pct": 8.8, "threshold_pct": 32.0, "target_pct": 28.0, "above_threshold": false, "suggested_price": null, "price_delta": null, "rationale": "Food cost is 8.8%, within the 32% threshold. No action required. Largest cost driver: Extra Virgin Olive Oil 1 Gallon at $25.40/unit contributes $0.36 of the $0.71 plate cost.", "cost_breakdown": [{"sku": "OIL-EVOO-1GAL", "name": "Extra Virgin Olive Oil 1 Gallon", "qty_per_serving": 0.014, "unit_price": 25.4, "cost": 0.3556}, {"sku": "DRY-FLOUR-AP-50", "name": "All Purpose Flour 50lb Bag", "qty_per_serving": 0.018, "unit_price": 19.5, "cost": 0.351}]}]}, "labor": {"method": "seasonal_naive_dow_trailing_v1", "model_type": "seasonal-naive baseline (untrained)", "horizon_days": 7, "history_days_used": 84, "external_signals_used": [], "accuracy_claim": "None. No backtest against held-out data has been run and no accuracy figure is claimed for this baseline.", "staffing_assumptions": {"covers_per_foh_staff_hour": 7.0, "covers_per_boh_staff_hour": 15.0, "service_hours": 6.0, "min_front_of_house_staff": 2, "min_back_of_house_staff": 1, "provenance": "Engineering assumption - not specified in the working paper and not measured. Service styles differ enormously, so these are configurable inputs, not industry constants."}, "governance_note": "Advisory only. A.C.E. does not publish or modify staff schedules (White Paper \u00a73.4, \u00a75.2).", "fairness_note": "The model consumes aggregate daily cover counts only. No worker-level or demographic data is used (White Paper \u00a75.2).", "daily": [{"date": "2026-04-01", "day_of_week": "Wednesday", "forecast_covers": 98, "trailing_mean_covers": 122.7, "dow_index": 0.798, "staffing": {"front_of_house": 3, "back_of_house": 2, "total": 5}, "minimum_staffing_floor_applied": false, "rationale": "Forecast 98 covers: 8 Wednesdays in the trailing 56-day window averaged 98 covers, -20% versus the 123-cover overall average. Staffing from a 6-hour service window at 7 covers/FOH and 15 covers/BOH per hour gives 3 FOH / 2 BOH. Baseline is day-of-week averaging only - no event, weather, or holiday signal is used (see module docstring).", "status": "Advisory - manager approval required (White Paper \u00a73.4)"}, {"date": "2026-04-02", "day_of_week": "Thursday", "forecast_covers": 115, "trailing_mean_covers": 122.7, "dow_index": 0.937, "staffing": {"front_of_house": 3, "back_of_house": 2, "total": 5}, "minimum_staffing_floor_applied": false, "rationale": "Forecast 115 covers: 8 Thursdays in the trailing 56-day window averaged 115 covers, -6% versus the 123-cover overall average. Staffing from a 6-hour service window at 7 covers/FOH and 15 covers/BOH per hour gives 3 FOH / 2 BOH. Baseline is day-of-week averaging only - no event, weather, or holiday signal is used (see module docstring).", "status": "Advisory - manager approval required (White Paper \u00a73.4)"}, {"date": "2026-04-03", "day_of_week": "Friday", "forecast_covers": 166, "trailing_mean_covers": 122.7, "dow_index": 1.353, "staffing": {"front_of_house": 4, "back_of_house": 2, "total": 6}, "minimum_staffing_floor_applied": false, "rationale": "Forecast 166 covers: 8 Fridays in the trailing 56-day window averaged 166 covers, +35% versus the 123-cover overall average. Staffing from a 6-hour service window at 7 covers/FOH and 15 covers/BOH per hour gives 4 FOH / 2 BOH. Baseline is day-of-week averaging only - no event, weather, or holiday signal is used (see module docstring).", "status": "Advisory - manager approval required (White Paper \u00a73.4)"}, {"date": "2026-04-04", "day_of_week": "Saturday", "forecast_covers": 183, "trailing_mean_covers": 122.7, "dow_index": 1.491, "staffing": {"front_of_house": 5, "back_of_house": 3, "total": 8}, "minimum_staffing_floor_applied": false, "rationale": "Forecast 183 covers: 8 Saturdays in the trailing 56-day window averaged 183 covers, +49% versus the 123-cover overall average. Staffing from a 6-hour service window at 7 covers/FOH and 15 covers/BOH per hour gives 5 FOH / 3 BOH. Baseline is day-of-week averaging only - no event, weather, or holiday signal is used (see module docstring).", "status": "Advisory - manager approval required (White Paper \u00a73.4)"}, {"date": "2026-04-05", "day_of_week": "Sunday", "forecast_covers": 134, "trailing_mean_covers": 122.7, "dow_index": 1.09, "staffing": {"front_of_house": 4, "back_of_house": 2, "total": 6}, "minimum_staffing_floor_applied": false, "rationale": "Forecast 134 covers: 8 Sundays in the trailing 56-day window averaged 134 covers, +9% versus the 123-cover overall average. Staffing from a 6-hour service window at 7 covers/FOH and 15 covers/BOH per hour gives 4 FOH / 2 BOH. Baseline is day-of-week averaging only - no event, weather, or holiday signal is used (see module docstring).", "status": "Advisory - manager approval required (White Paper \u00a73.4)"}, {"date": "2026-04-06", "day_of_week": "Monday", "forecast_covers": 78, "trailing_mean_covers": 122.7, "dow_index": 0.637, "staffing": {"front_of_house": 2, "back_of_house": 1, "total": 3}, "minimum_staffing_floor_applied": false, "rationale": "Forecast 78 covers: 8 Mondays in the trailing 56-day window averaged 78 covers, -36% versus the 123-cover overall average. Staffing from a 6-hour service window at 7 covers/FOH and 15 covers/BOH per hour gives 2 FOH / 1 BOH. Baseline is day-of-week averaging only - no event, weather, or holiday signal is used (see module docstring).", "status": "Advisory - manager approval required (White Paper \u00a73.4)"}, {"date": "2026-04-07", "day_of_week": "Tuesday", "forecast_covers": 85, "trailing_mean_covers": 122.7, "dow_index": 0.694, "staffing": {"front_of_house": 3, "back_of_house": 1, "total": 4}, "minimum_staffing_floor_applied": false, "rationale": "Forecast 85 covers: 8 Tuesdays in the trailing 56-day window averaged 85 covers, -31% versus the 123-cover overall average. Staffing from a 6-hour service window at 7 covers/FOH and 15 covers/BOH per hour gives 3 FOH / 1 BOH. Baseline is day-of-week averaging only - no event, weather, or holiday signal is used (see module docstring).", "status": "Advisory - manager approval required (White Paper \u00a73.4)"}]}, "labor_series": [{"date": "2026-04-01", "covers": 98}, {"date": "2026-04-02", "covers": 115}, {"date": "2026-04-03", "covers": 166}, {"date": "2026-04-04", "covers": 183}, {"date": "2026-04-05", "covers": 134}, {"date": "2026-04-06", "covers": 78}, {"date": "2026-04-07", "covers": 85}], "audit": [{"ts": "2026-08-08T11:14:28.154195+00:00", "actor": "seed", "action": "DEMO_DATA_LOADED"}, {"ts": "2026-08-08T11:14:28.167754+00:00", "actor": "dashboard_build", "action": "INVOICE_PROCESSED"}, {"ts": "2026-08-08T11:14:28.176072+00:00", "actor": "dashboard_build", "action": "SKU_PRICES_AUTO_SYNCED"}, {"ts": "2026-08-08T11:14:28.185212+00:00", "actor": "dashboard_build", "action": "INVOICE_PROCESSED"}, {"ts": "2026-08-08T11:14:28.193531+00:00", "actor": "dashboard_build", "action": "SKU_PRICES_AUTO_SYNCED"}, {"ts": "2026-08-08T11:14:28.201452+00:00", "actor": "dashboard_build", "action": "INVOICE_PROCESSED"}, {"ts": "2026-08-08T11:14:28.213635+00:00", "actor": "dashboard_build", "action": "SKU_PRICES_AUTO_SYNCED"}, {"ts": "2026-08-08T11:14:28.219771+00:00", "actor": "demo_manager@example", "action": "APPROVAL_APPROVED"}, {"ts": "2026-08-08T11:14:28.224695+00:00", "actor": "demo_manager@example", "action": "SKU_PRICE_UPDATED"}, {"ts": "2026-08-08T11:14:28.233263+00:00", "actor": "demo_manager@example", "action": "APPROVAL_APPROVED"}, {"ts": "2026-08-08T11:14:28.233263+00:00", "actor": "demo_manager@example", "action": "SKU_PRICE_UPDATED"}, {"ts": "2026-08-08T11:14:28.241358+00:00", "actor": "demo_manager@example", "action": "APPROVAL_APPROVED"}, {"ts": "2026-08-08T11:14:28.241358+00:00", "actor": "demo_manager@example", "action": "SKU_PRICE_UPDATED"}, {"ts": "2026-08-08T11:14:28.274976+00:00", "actor": "dashboard_build", "action": "PRICE_RECOMMENDATIONS_GENERATED"}, {"ts": "2026-08-08T11:14:28.282424+00:00", "actor": "dashboard_build", "action": "LABOR_FORECAST_GENERATED"}]};
+const $ = s => document.querySelector(s);
+const money = n => '$' + Number(n).toFixed(2);
+const esc = s => String(s).replace(/[&<>"]/g, c =>
+  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+const ROUTE = {
+  auto_sync:            ['b-ok',   'Auto-synced'],
+  manager_confirmation: ['b-warn', 'Needs confirmation'],
+  manual_review:        ['b-stop', 'Manual review'],
+};
+
+/* tabs */
+const panels = ['p1','p2','p3','p4'];
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => show(t.dataset.p));
+function show(id){
+  panels.forEach(p => $('#'+p).classList.toggle('hide', p !== id));
+  document.querySelectorAll('.tab').forEach(t =>
+    t.setAttribute('aria-selected', String(t.dataset.p === id)));
+}
+
+/* header */
+$('#meta').textContent =
+  `v${DATA.meta.version} · engine ${DATA.meta.engine_version} · built ${DATA.meta.built_at}`;
+$('#foot').innerHTML =
+  `A.C.E. Phase-1 proof of concept. Working paper DOI ` +
+  `<a href="https://doi.org/${DATA.meta.doi}">${DATA.meta.doi}</a>. ` +
+  `Thresholds in force: match confidence ` +
+  `${(DATA.thresholds.match_confidence*100).toFixed(0)}% (§3.2), price variance ` +
+  `${(DATA.thresholds.price_variance*100).toFixed(0)}% (§3.2/§5.2), food cost alert ` +
+  `${(DATA.thresholds.food_cost_alert*100).toFixed(0)}% (§3.3). ` +
+  `<strong>Author-added values, not from the paper:</strong> the ` +
+  `${(DATA.thresholds.food_cost_target*100).toFixed(0)}% repricing target, and the ` +
+  `staffing ratios of ${DATA.labor.staffing_assumptions.covers_per_foh_staff_hour} ` +
+  `covers per FOH staff-hour and ` +
+  `${DATA.labor.staffing_assumptions.covers_per_boh_staff_hour} per BOH staff-hour ` +
+  `used in Layer 3. Both are configurable inputs, neither is measured.`;
+
+/* ── Layer 1 ── */
+const sel = $('#invsel');
+DATA.invoices.forEach((inv,i) => {
+  const o = document.createElement('option');
+  o.value = i;
+  o.textContent = `${inv.supplier_name} — ${inv.invoice_number} (${inv.invoice_date})`;
+  sel.appendChild(o);
+});
+sel.onchange = () => renderInvoice(+sel.value);
+
+function renderInvoice(i){
+  const inv = DATA.invoices[i], c = inv.routing_counts;
+  $('#invstats').innerHTML = [
+    [inv.items_extracted, 'line items parsed'],
+    [c.auto_sync, 'auto-synced'],
+    [c.manager_confirmation, 'awaiting confirmation'],
+    [c.manual_review, 'to manual review'],
+    [money(inv.total_extracted), 'invoice total'],
+  ].map(([n,l]) => `<div class="stat"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
+
+  $('#invrows').innerHTML = inv.line_items.map(li => {
+    const [cls,label] = ROUTE[li.routing];
+    const chg = li.price_change_pct === null ? '—'
+      : (li.price_change_pct > 0 ? '+' : '') + li.price_change_pct.toFixed(1) + '%';
+    return `<tr>
+      <td>${esc(li.ingredient_name)}<div class="why">${esc(li.raw_text)}</div></td>
+      <td>${li.matched_sku ? '<code>'+esc(li.matched_sku)+'</code>' : '<span class="sub">no match</span>'}</td>
+      <td class="num">${(li.match_confidence*100).toFixed(0)}%</td>
+      <td class="num">${money(li.unit_price)}${li.previous_unit_price!==null
+        ? '<div class="why">was '+money(li.previous_unit_price)+'</div>' : ''}</td>
+      <td class="num">${chg}</td>
+      <td><span class="badge ${cls}">${label}</span>
+        <div class="why">${esc(li.routing_reason)}</div></td>
+    </tr>`;
+  }).join('');
+  $('#invsrc').textContent = inv.source_text;
+}
+
+/* ── Layer 2 ── */
+function renderPricing(which){
+  const d = which === 'before' ? DATA.pricing_before : DATA.pricing_after;
+  $('#beforeBtn').style.borderColor = which==='before' ? 'var(--accent)' : 'var(--line)';
+  $('#afterBtn').style.borderColor  = which==='after'  ? 'var(--accent)' : 'var(--line)';
+
+  $('#pricestats').innerHTML = [
+    [d.items_above_threshold, 'above threshold'],
+    [d.items_within_threshold, 'within threshold'],
+    [d.threshold_pct + '%', 'alert threshold (§3.3)'],
+    [d.autonomous_execution_enabled ? 'ON' : 'OFF', 'autonomous pricing'],
+  ].map(([n,l]) => `<div class="stat"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
+
+  $('#pendingBox').innerHTML = which === 'before' && DATA.pending_confirmations.length
+    ? `<div class="rec"><h3>Held at the gate — awaiting manager confirmation</h3>` +
+      DATA.pending_confirmations.map(p =>
+        `<div style="margin-top:8px"><strong>${esc(p.ingredient)}</strong>
+         <span class="badge b-warn">${p.change_pct > 0 ? '+' : ''}${p.change_pct}%</span>
+         <div class="why">${esc(p.reason)}</div></div>`).join('') + `</div>`
+    : '';
+
+  const flagged = d.items.filter(i => i.above_threshold);
+  $('#recs').innerHTML = flagged.length
+    ? flagged.map(i => `<div class="rec">
+        <h3>${esc(i.item_name)} — ${money(i.menu_price)} → ${money(i.suggested_price)}
+          <span class="badge b-warn">${i.food_cost_pct}% food cost</span></h3>
+        <div class="why">${esc(i.rationale)}</div>
+        <div class="why" style="margin-top:7px"><strong>Cost breakdown:</strong>
+          ${i.cost_breakdown.map(c =>
+            `${esc(c.name)} ${money(c.cost)}`).join(' · ')}</div>
+      </div>`).join('')
+    : `<div class="rec ok"><h3>No item exceeds the ${d.threshold_pct}% threshold</h3>
+       <div class="why">Every menu item is currently within target. No pricing
+       action is recommended.</div></div>`;
+
+  $('#allitems').innerHTML = d.items.map(i => `<tr>
+      <td>${esc(i.item_name)}</td>
+      <td class="num">${money(i.menu_price)}</td>
+      <td class="num">${money(i.recipe_cost)}</td>
+      <td class="num">${i.food_cost_pct}%</td>
+      <td>${i.above_threshold
+        ? '<span class="badge b-warn">Review — suggest ' + money(i.suggested_price) + '</span>'
+        : '<span class="badge b-ok">Within target</span>'}</td>
+    </tr>`).join('');
+}
+$('#beforeBtn').onclick = () => renderPricing('before');
+$('#afterBtn').onclick  = () => renderPricing('after');
+
+/* ── Layer 3 ── */
+const L = DATA.labor;
+$('#laborsub').textContent =
+  `White Paper §3.4 · method ${L.method} · ${L.history_days_used} days of history · ` +
+  `horizon ${L.horizon_days} days`;
+
+/* Staffing ratios are author-added, like the 28% repricing target, so they get
+   the same permanent on-page disclosure rather than living only in tooltips. */
+const SA = L.staffing_assumptions;
+$('#staffassume').innerHTML =
+  `<strong>Staffing ratios are an engineering assumption, not from the paper.</strong> ` +
+  `Converting covers into headcount uses ${SA.covers_per_foh_staff_hour} covers per ` +
+  `front-of-house staff-hour and ${SA.covers_per_boh_staff_hour} per back-of-house ` +
+  `staff-hour over a ${SA.service_hours}-hour service window, with a floor of ` +
+  `${SA.min_front_of_house_staff} FOH / ${SA.min_back_of_house_staff} BOH. ` +
+  `${esc(SA.provenance)}`;
+const maxCovers = Math.max(...L.daily.map(d => d.forecast_covers));
+$('#bars').innerHTML = L.daily.map(d => `
+  <div class="bar" title="${esc(d.rationale)}">
+    <div class="val">${d.forecast_covers}</div>
+    <div class="fill" style="height:${(d.forecast_covers/maxCovers*100).toFixed(1)}%"></div>
+    <div class="cap">${d.day_of_week.slice(0,3)}<br>${d.date.slice(5)}</div>
+  </div>`).join('');
+$('#laborrows').innerHTML = L.daily.map(d => `<tr>
+    <td>${d.date}</td><td>${d.day_of_week}</td>
+    <td class="num">${d.forecast_covers}</td>
+    <td class="num">${d.dow_index.toFixed(2)}</td>
+    <td class="num">${d.staffing.front_of_house}</td>
+    <td class="num">${d.staffing.back_of_house}</td>
+    <td><div class="why">${esc(d.rationale)}</div></td>
+  </tr>`).join('');
+
+/* ── Audit ── */
+const counts = {};
+DATA.audit.forEach(a => counts[a.action] = (counts[a.action] || 0) + 1);
+$('#auditrows').innerHTML = Object.entries(counts)
+  .sort((a,b) => b[1]-a[1])
+  .map(([a,n]) => `<tr><td><code>${esc(a)}</code></td><td class="num">${n}</td></tr>`)
+  .join('');
+
+/* init */
+renderInvoice(0);
+renderPricing('before');
+show('p1');
+</script>
+</body>
+</html>

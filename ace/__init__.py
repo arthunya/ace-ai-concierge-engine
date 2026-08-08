@@ -1,67 +1,68 @@
+"""A.C.E. — AI Concierge & Engine.
+
+An AI-Driven Financial Intelligence Framework for U.S. SME Restaurant
+Resilience. Phase-1 proof of concept.
+
+Reference:
+    Kanoklertwongse, A. (2026). A.C.E. — AI Concierge & Engine.
+    ResearchGate Working Paper. DOI: 10.13140/RG.2.2.33391.60326
+
+See README.md for the Honest Scope Statement describing what in this
+repository is built and verified versus what remains future work.
 """
-A.C.E. — AI Concierge & Engine
-An AI-Driven Financial Intelligence Framework for U.S. SME Restaurant Resilience
+from __future__ import annotations
 
-Author: Arthunya Kanoklertwongse
-DOI: 10.13140/RG.2.2.33391.60326
-License: MIT
-"""
+from pathlib import Path
+from typing import Dict, List, Optional
 
-from .config import ACEConfig
+from ace.config import ACEConfig
 
-__version__ = "0.1.0-alpha"
+__version__ = "0.2.0"
 __author__ = "Arthunya Kanoklertwongse"
 __doi__ = "10.13140/RG.2.2.33391.60326"
 
 
 class ACEEngine:
-    """
-    A.C.E. primary interface — orchestrates all three layers:
-      Layer 1: Automated Invoice Ingestion (AI-OCR Pipeline)
-      Layer 2: Dynamic Menu Engineering Engine
-      Layer 3: Predictive Labor Scheduling
+    """Orchestrates the three layers over a shared database connection.
 
     Usage:
+        from ace import ACEEngine
         engine = ACEEngine()
-        engine.initialize()
-        result = engine.process_invoice("invoice.pdf")
+        rid = engine.load_demo_data()
+        engine.process_invoice("data/demo/invoice_usfoods_2026-03-14.txt", rid,
+                               is_demo=True)
+        engine.pricing_recommendations(rid)
+        engine.labor_recommendations(rid)
     """
 
-    def __init__(self, config: "ACEConfig" = None):
-        from .ingestion.invoice_loader import InvoiceLoader
-        from .pricing.menu_engine import MenuEngine
-        from .scheduling.labor_optimizer import LaborOptimizer
+    def __init__(self, config: Optional[ACEConfig] = None, db_path=None):
+        from ace import db
+        from ace.ingestion.invoice_loader import InvoiceLoader
+        from ace.pricing.menu_engine import MenuEngine
+        from ace.scheduling.labor_optimizer import LaborForecaster
 
         self.config = config or ACEConfig()
-        self._invoice_loader = InvoiceLoader(self.config)
-        self._menu_engine = MenuEngine(self.config)
-        self._labor_optimizer = LaborOptimizer(self.config)
-        self._initialized = False
+        self.conn = db.connect(db_path) if db_path else db.connect()
+        self.invoices = InvoiceLoader(self.config, self.conn)
+        self.menu = MenuEngine(self.config, self.conn)
+        self.labor = LaborForecaster(self.config, self.conn)
 
-    def initialize(self) -> None:
-        """Load all models and connect to data sources."""
-        self._invoice_loader.initialize()
-        self._menu_engine.initialize()
-        self._labor_optimizer.initialize()
-        self._initialized = True
+    def load_demo_data(self) -> str:
+        """Load the synthetic demo restaurant. Returns its restaurant_id."""
+        from ace.ingestion import seed_data
+        return seed_data.load(self.conn)
 
-    def process_invoice(self, invoice_path: str) -> dict:
-        """Layer 1: Process a supplier invoice PDF and sync to inventory."""
-        if not self._initialized:
-            self.initialize()
-        return self._invoice_loader.process(invoice_path)
+    def process_invoice(self, path: str | Path, restaurant_id: str, **kw):
+        return self.invoices.process(path, restaurant_id, **kw)
 
-    def get_pricing_recommendations(self) -> dict:
-        """Layer 2: Get menu pricing recommendations based on current costs."""
-        if not self._initialized:
-            self.initialize()
-        return self._menu_engine.get_recommendations()
+    def pricing_recommendations(self, restaurant_id: str, **kw) -> Dict:
+        return self.menu.recommendations(restaurant_id, **kw)
 
-    def get_labor_recommendations(self, days_ahead: int = 7) -> dict:
-        """Layer 3: Get staffing recommendations for the next N days."""
-        if not self._initialized:
-            self.initialize()
-        return self._labor_optimizer.recommend(days_ahead=days_ahead)
+    def labor_recommendations(self, restaurant_id: str, **kw) -> Dict:
+        return self.labor.recommendations(restaurant_id, **kw)
+
+    def close(self) -> None:
+        self.conn.close()
 
 
-__all__ = ["ACEEngine", "ACEConfig"]
+__all__ = ["ACEEngine", "ACEConfig", "__version__", "__doi__"]

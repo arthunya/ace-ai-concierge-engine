@@ -1,0 +1,18 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -r requirements.txt
+      - run: python -m pytest tests/ -q
+      - run: python demo.py
+      # The dashboard must rebuild cleanly from the committed demo data, and
+      # the committed cover history must be reproducible from its seed.
+      - run: python scripts/build_dashboard.py
+      - run: |
+          python scripts/generate_demo_pos_history.py
+          git diff --exit-code data/demo/pos_covers_history.csv

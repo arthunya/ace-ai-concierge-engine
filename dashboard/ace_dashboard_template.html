@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A.C.E. — AI Concierge &amp; Engine · Phase-1 Demo</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --panel:#fff; --ink:#12161c; --muted:#5b6672; --line:#e2e6ea;
+    --accent:#1f5f8b; --ok:#2f7a4d; --warn:#a8620a; --stop:#a32f2f;
+    --ok-bg:#e8f4ec; --warn-bg:#fbf0e2; --stop-bg:#f8e9e9; --accent-bg:#e9f0f6;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#12161b; --panel:#1a2027; --ink:#e6eaee; --muted:#9aa6b2; --line:#2a323b;
+      --accent:#6fb3dd; --ok:#68c48d; --warn:#e0a459; --stop:#e08585;
+      --ok-bg:#17301f; --warn-bg:#332512; --stop-bg:#331a1a; --accent-bg:#16293a;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:1120px;margin:0 auto;padding:24px 18px 64px}
+  h1{font-size:24px;margin:0 0 4px}
+  h2{font-size:18px;margin:0 0 4px}
+  h3{font-size:15px;margin:0 0 6px}
+  .sub{color:var(--muted);font-size:13px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    padding:18px;margin:16px 0}
+  .banner{background:var(--warn-bg);border:1px solid var(--warn);border-radius:10px;
+    padding:14px 16px;margin:14px 0}
+  .banner strong{color:var(--warn)}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:18px 0 0}
+  .tab{padding:9px 15px;border:1px solid var(--line);background:var(--panel);
+    border-radius:8px;cursor:pointer;font-size:14px;color:var(--ink)}
+  .tab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+  .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11.5px;
+    font-weight:600;letter-spacing:.02em;white-space:nowrap}
+  .b-ok{background:var(--ok-bg);color:var(--ok)}
+  .b-warn{background:var(--warn-bg);color:var(--warn)}
+  .b-stop{background:var(--stop-bg);color:var(--stop)}
+  .b-info{background:var(--accent-bg);color:var(--accent)}
+  .scroll{overflow-x:auto}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:640px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);
+    vertical-align:top}
+  th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);
+    font-weight:600}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .why{color:var(--muted);font-size:12.5px;margin-top:3px;max-width:60ch}
+  select,button.act{font:inherit;padding:8px 11px;border-radius:8px;
+    border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+  .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:13px}
+  .stat .n{font-size:25px;font-weight:650;font-variant-numeric:tabular-nums}
+  .stat .l{font-size:12px;color:var(--muted);margin-top:2px}
+  .rec{border:1px solid var(--line);border-left:3px solid var(--warn);
+    border-radius:8px;padding:13px;margin:10px 0;background:var(--panel)}
+  .rec.ok{border-left-color:var(--ok)}
+  .bars{display:flex;align-items:flex-end;gap:10px;height:170px;margin:14px 0 6px}
+  .bar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;
+    align-items:center;gap:5px;height:100%}
+  .bar .fill{width:100%;background:var(--accent);border-radius:5px 5px 0 0;min-height:3px}
+  .bar .cap{font-size:11px;color:var(--muted);text-align:center;line-height:1.25}
+  .bar .val{font-size:12px;font-variant-numeric:tabular-nums;font-weight:600}
+  pre.src{background:var(--bg);border:1px solid var(--line);border-radius:8px;
+    padding:12px;overflow-x:auto;font-size:12px;line-height:1.45;margin:0}
+  .hide{display:none}
+  ul.tight{margin:6px 0 0;padding-left:20px}
+  ul.tight li{margin:3px 0}
+  code{background:var(--bg);padding:1px 5px;border-radius:4px;font-size:12.5px}
+  .foot{color:var(--muted);font-size:12.5px;margin-top:26px;border-top:1px solid var(--line);
+    padding-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>A.C.E. — AI Concierge &amp; Engine</h1>
+  <div class="sub">Phase-1 proof of concept · <span id="meta"></span></div>
+
+  <div class="banner">
+    <strong>All data on this page is synthetic and illustrative.</strong>
+    “Bella Vista Trattoria” is not a real business, the invoices were written
+    for this repository, and the cover history is generated. <strong>No pilot
+    deployment has taken place</strong> — the working paper describes the
+    10-location Early Adopter pilot as future work (§4.1, §7). Nothing here is
+    a measured result from a restaurant. Every figure was computed by the code
+    in this repository when the page was built.
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" data-p="p1">1 · Invoice ingestion</button>
+    <button class="tab" role="tab" data-p="p2">2 · Menu engineering</button>
+    <button class="tab" role="tab" data-p="p3">3 · Labor forecast</button>
+    <button class="tab" role="tab" data-p="p4">Governance &amp; scope</button>
+  </div>
+
+  <!-- ── Layer 1 ─────────────────────────────────────────────────── -->
+  <section id="p1" class="hide">
+    <div class="panel">
+      <h2>Layer 1 — Automated invoice ingestion</h2>
+      <div class="sub">White Paper §3.2. Each line is matched to an inventory
+        SKU and routed by two gates: match confidence and price variance.</div>
+      <div style="margin:14px 0">
+        <label for="invsel" class="sub">Demo invoice:</label><br>
+        <select id="invsel" style="margin-top:6px;min-width:340px"></select>
+      </div>
+      <div class="grid" id="invstats"></div>
+      <div class="scroll" style="margin-top:16px">
+        <table>
+          <thead><tr>
+            <th>Line item</th><th>SKU</th><th class="num">Conf.</th>
+            <th class="num">Unit $</th><th class="num">Change</th><th>Outcome</th>
+          </tr></thead>
+          <tbody id="invrows"></tbody>
+        </table>
+      </div>
+      <details style="margin-top:16px">
+        <summary class="sub" style="cursor:pointer">Show the raw invoice text this was parsed from</summary>
+        <pre class="src" id="invsrc" style="margin-top:10px"></pre>
+      </details>
+    </div>
+  </section>
+
+  <!-- ── Layer 2 ─────────────────────────────────────────────────── -->
+  <section id="p2" class="hide">
+    <div class="panel">
+      <h2>Layer 2 — Dynamic menu engineering</h2>
+      <div class="sub">White Paper §3.3. Food cost % is recomputed from current
+        recorded ingredient costs; items above the threshold get a suggested price.</div>
+
+      <div class="banner" style="margin-top:14px">
+        <strong>The gate in action.</strong> Cost increases above 5% are held
+        until a manager confirms them, so they cannot move a price on their own.
+        Use the toggle to see the same menu before and after confirmation.
+      </div>
+
+      <div style="margin:14px 0">
+        <button class="act" id="beforeBtn">Before confirmation</button>
+        <button class="act" id="afterBtn">After manager confirmation</button>
+      </div>
+
+      <div class="grid" id="pricestats"></div>
+      <div id="pendingBox" style="margin-top:16px"></div>
+      <div id="recs" style="margin-top:8px"></div>
+
+      <div class="scroll" style="margin-top:18px">
+        <h3>All menu items</h3>
+        <table>
+          <thead><tr>
+            <th>Item</th><th class="num">Menu $</th><th class="num">Plate cost</th>
+            <th class="num">Food cost %</th><th>Status</th>
+          </tr></thead>
+          <tbody id="allitems"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Layer 3 ─────────────────────────────────────────────────── -->
+  <section id="p3" class="hide">
+    <div class="panel">
+      <h2>Layer 3 — Predictive labor scheduling</h2>
+      <div class="sub" id="laborsub"></div>
+      <div class="banner" style="margin-top:14px">
+        <strong>This is an untrained baseline, not the model in §3.4.</strong>
+        It multiplies the trailing average by a day-of-week index computed from
+        the same window. No event, weather, or holiday signal is used, and
+        <strong>no accuracy figure is claimed</strong> — no backtest has been run.
+        <div style="margin-top:9px" id="staffassume"></div>
+      </div>
+      <div class="bars" id="bars"></div>
+      <div class="scroll" style="margin-top:14px">
+        <table>
+          <thead><tr>
+            <th>Date</th><th>Day</th><th class="num">Covers</th><th class="num">DoW index</th>
+            <th class="num">FOH</th><th class="num">BOH</th><th>Why</th>
+          </tr></thead>
+          <tbody id="laborrows"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Governance ──────────────────────────────────────────────── -->
+  <section id="p4" class="hide">
+    <div class="panel">
+      <h2>Governance &amp; honest scope</h2>
+      <h3 style="margin-top:14px">Built and verified in this repository</h3>
+      <ul class="tight">
+        <li>Invoice text parsing into structured line items</li>
+        <li>Fuzzy SKU matching (rapidfuzz token-set, case-folded)</li>
+        <li>The three routing gates of §3.2, with a stated reason on every line</li>
+        <li>Recipe costing, food cost %, and price recommendation (§3.3)</li>
+        <li>Manager approval gate — a cost cannot reach pricing without it (§3.1)</li>
+        <li>Seasonal-naive 7-day labor baseline (§3.4, partial)</li>
+        <li>Append-only audit log, enforced by database trigger</li>
+      </ul>
+      <h3 style="margin-top:16px">Not built — future work</h3>
+      <ul class="tight">
+        <li><strong>OCR.</strong> §3.2 specifies a fine-tuned transformer for
+          invoice recognition. None is trained. This demo parses a text layer,
+          recorded as <code>extraction_method</code>. No OCR accuracy is claimed.</li>
+        <li><strong>Live POS integration.</strong> Toast and Clover REST/webhook
+          integration is not implemented; Phase 1 is file-based.</li>
+        <li><strong>Trained forecaster.</strong> §3.4 specifies a trained
+          time-series model with event and weather signals. Not built.</li>
+        <li><strong>Pilot validation.</strong> §4.1 and §7 describe a 10-location
+          Early Adopter pilot as future work. It has not been run, so this
+          repository contains no pilot metrics of any kind.</li>
+      </ul>
+      <h3 style="margin-top:16px">Audit trail from this build</h3>
+      <div class="scroll">
+        <table><thead><tr><th>Action</th><th class="num">Count</th></tr></thead>
+        <tbody id="auditrows"></tbody></table>
+      </div>
+    </div>
+  </section>
+
+  <div class="foot" id="foot"></div>
+</div>
+
+<script>
+// The build script replaces the quoted token below with the JSON payload, so
+// this line stays valid JavaScript both before and after assembly.
+const DATA = "__ACE_DATA__";
+const $ = s => document.querySelector(s);
+const money = n => '$' + Number(n).toFixed(2);
+const esc = s => String(s).replace(/[&<>"]/g, c =>
+  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+const ROUTE = {
+  auto_sync:            ['b-ok',   'Auto-synced'],
+  manager_confirmation: ['b-warn', 'Needs confirmation'],
+  manual_review:        ['b-stop', 'Manual review'],
+};
+
+/* tabs */
+const panels = ['p1','p2','p3','p4'];
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => show(t.dataset.p));
+function show(id){
+  panels.forEach(p => $('#'+p).classList.toggle('hide', p !== id));
+  document.querySelectorAll('.tab').forEach(t =>
+    t.setAttribute('aria-selected', String(t.dataset.p === id)));
+}
+
+/* header */
+$('#meta').textContent =
+  `v${DATA.meta.version} · engine ${DATA.meta.engine_version} · built ${DATA.meta.built_at}`;
+$('#foot').innerHTML =
+  `A.C.E. Phase-1 proof of concept. Working paper DOI ` +
+  `<a href="https://doi.org/${DATA.meta.doi}">${DATA.meta.doi}</a>. ` +
+  `Thresholds in force: match confidence ` +
+  `${(DATA.thresholds.match_confidence*100).toFixed(0)}% (§3.2), price variance ` +
+  `${(DATA.thresholds.price_variance*100).toFixed(0)}% (§3.2/§5.2), food cost alert ` +
+  `${(DATA.thresholds.food_cost_alert*100).toFixed(0)}% (§3.3). ` +
+  `<strong>Author-added values, not from the paper:</strong> the ` +
+  `${(DATA.thresholds.food_cost_target*100).toFixed(0)}% repricing target, and the ` +
+  `staffing ratios of ${DATA.labor.staffing_assumptions.covers_per_foh_staff_hour} ` +
+  `covers per FOH staff-hour and ` +
+  `${DATA.labor.staffing_assumptions.covers_per_boh_staff_hour} per BOH staff-hour ` +
+  `used in Layer 3. Both are configurable inputs, neither is measured.`;
+
+/* ── Layer 1 ── */
+const sel = $('#invsel');
+DATA.invoices.forEach((inv,i) => {
+  const o = document.createElement('option');
+  o.value = i;
+  o.textContent = `${inv.supplier_name} — ${inv.invoice_number} (${inv.invoice_date})`;
+  sel.appendChild(o);
+});
+sel.onchange = () => renderInvoice(+sel.value);
+
+function renderInvoice(i){
+  const inv = DATA.invoices[i], c = inv.routing_counts;
+  $('#invstats').innerHTML = [
+    [inv.items_extracted, 'line items parsed'],
+    [c.auto_sync, 'auto-synced'],
+    [c.manager_confirmation, 'awaiting confirmation'],
+    [c.manual_review, 'to manual review'],
+    [money(inv.total_extracted), 'invoice total'],
+  ].map(([n,l]) => `<div class="stat"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
+
+  $('#invrows').innerHTML = inv.line_items.map(li => {
+    const [cls,label] = ROUTE[li.routing];
+    const chg = li.price_change_pct === null ? '—'
+      : (li.price_change_pct > 0 ? '+' : '') + li.price_change_pct.toFixed(1) + '%';
+    return `<tr>
+      <td>${esc(li.ingredient_name)}<div class="why">${esc(li.raw_text)}</div></td>
+      <td>${li.matched_sku ? '<code>'+esc(li.matched_sku)+'</code>' : '<span class="sub">no match</span>'}</td>
+      <td class="num">${(li.match_confidence*100).toFixed(0)}%</td>
+      <td class="num">${money(li.unit_price)}${li.previous_unit_price!==null
+        ? '<div class="why">was '+money(li.previous_unit_price)+'</div>' : ''}</td>
+      <td class="num">${chg}</td>
+      <td><span class="badge ${cls}">${label}</span>
+        <div class="why">${esc(li.routing_reason)}</div></td>
+    </tr>`;
+  }).join('');
+  $('#invsrc').textContent = inv.source_text;
+}
+
+/* ── Layer 2 ── */
+function renderPricing(which){
+  const d = which === 'before' ? DATA.pricing_before : DATA.pricing_after;
+  $('#beforeBtn').style.borderColor = which==='before' ? 'var(--accent)' : 'var(--line)';
+  $('#afterBtn').style.borderColor  = which==='after'  ? 'var(--accent)' : 'var(--line)';
+
+  $('#pricestats').innerHTML = [
+    [d.items_above_threshold, 'above threshold'],
+    [d.items_within_threshold, 'within threshold'],
+    [d.threshold_pct + '%', 'alert threshold (§3.3)'],
+    [d.autonomous_execution_enabled ? 'ON' : 'OFF', 'autonomous pricing'],
+  ].map(([n,l]) => `<div class="stat"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
+
+  $('#pendingBox').innerHTML = which === 'before' && DATA.pending_confirmations.length
+    ? `<div class="rec"><h3>Held at the gate — awaiting manager confirmation</h3>` +
+      DATA.pending_confirmations.map(p =>
+        `<div style="margin-top:8px"><strong>${esc(p.ingredient)}</strong>
+         <span class="badge b-warn">${p.change_pct > 0 ? '+' : ''}${p.change_pct}%</span>
+         <div class="why">${esc(p.reason)}</div></div>`).join('') + `</div>`
+    : '';
+
+  const flagged = d.items.filter(i => i.above_threshold);
+  $('#recs').innerHTML = flagged.length
+    ? flagged.map(i => `<div class="rec">
+        <h3>${esc(i.item_name)} — ${money(i.menu_price)} → ${money(i.suggested_price)}
+          <span class="badge b-warn">${i.food_cost_pct}% food cost</span></h3>
+        <div class="why">${esc(i.rationale)}</div>
+        <div class="why" style="margin-top:7px"><strong>Cost breakdown:</strong>
+          ${i.cost_breakdown.map(c =>
+            `${esc(c.name)} ${money(c.cost)}`).join(' · ')}</div>
+      </div>`).join('')
+    : `<div class="rec ok"><h3>No item exceeds the ${d.threshold_pct}% threshold</h3>
+       <div class="why">Every menu item is currently within target. No pricing
+       action is recommended.</div></div>`;
+
+  $('#allitems').innerHTML = d.items.map(i => `<tr>
+      <td>${esc(i.item_name)}</td>
+      <td class="num">${money(i.menu_price)}</td>
+      <td class="num">${money(i.recipe_cost)}</td>
+      <td class="num">${i.food_cost_pct}%</td>
+      <td>${i.above_threshold
+        ? '<span class="badge b-warn">Review — suggest ' + money(i.suggested_price) + '</span>'
+        : '<span class="badge b-ok">Within target</span>'}</td>
+    </tr>`).join('');
+}
+$('#beforeBtn').onclick = () => renderPricing('before');
+$('#afterBtn').onclick  = () => renderPricing('after');
+
+/* ── Layer 3 ── */
+const L = DATA.labor;
+$('#laborsub').textContent =
+  `White Paper §3.4 · method ${L.method} · ${L.history_days_used} days of history · ` +
+  `horizon ${L.horizon_days} days`;
+
+/* Staffing ratios are author-added, like the 28% repricing target, so they get
+   the same permanent on-page disclosure rather than living only in tooltips. */
+const SA = L.staffing_assumptions;
+$('#staffassume').innerHTML =
+  `<strong>Staffing ratios are an engineering assumption, not from the paper.</strong> ` +
+  `Converting covers into headcount uses ${SA.covers_per_foh_staff_hour} covers per ` +
+  `front-of-house staff-hour and ${SA.covers_per_boh_staff_hour} per back-of-house ` +
+  `staff-hour over a ${SA.service_hours}-hour service window, with a floor of ` +
+  `${SA.min_front_of_house_staff} FOH / ${SA.min_back_of_house_staff} BOH. ` +
+  `${esc(SA.provenance)}`;
+const maxCovers = Math.max(...L.daily.map(d => d.forecast_covers));
+$('#bars').innerHTML = L.daily.map(d => `
+  <div class="bar" title="${esc(d.rationale)}">
+    <div class="val">${d.forecast_covers}</div>
+    <div class="fill" style="height:${(d.forecast_covers/maxCovers*100).toFixed(1)}%"></div>
+    <div class="cap">${d.day_of_week.slice(0,3)}<br>${d.date.slice(5)}</div>
+  </div>`).join('');
+$('#laborrows').innerHTML = L.daily.map(d => `<tr>
+    <td>${d.date}</td><td>${d.day_of_week}</td>
+    <td class="num">${d.forecast_covers}</td>
+    <td class="num">${d.dow_index.toFixed(2)}</td>
+    <td class="num">${d.staffing.front_of_house}</td>
+    <td class="num">${d.staffing.back_of_house}</td>
+    <td><div class="why">${esc(d.rationale)}</div></td>
+  </tr>`).join('');
+
+/* ── Audit ── */
+const counts = {};
+DATA.audit.forEach(a => counts[a.action] = (counts[a.action] || 0) + 1);
+$('#auditrows').innerHTML = Object.entries(counts)
+  .sort((a,b) => b[1]-a[1])
+  .map(([a,n]) => `<tr><td><code>${esc(a)}</code></td><td class="num">${n}</td></tr>`)
+  .join('');
+
+/* init */
+renderInvoice(0);
+renderPricing('before');
+show('p1');
+</script>
+</body>
+</html>

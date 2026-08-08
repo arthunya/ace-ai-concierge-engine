@@ -1,0 +1,22 @@
+=========================================================================
+  [DEMO DATA - ILLUSTRATIVE ONLY]
+  This is a synthetic invoice written for this repository to exercise the
+  Layer 1 parser. It is NOT a real supplier invoice, NOT real pricing, and
+  NOT from a real customer of any named distributor. "US Foods" appears
+  here only as a realistic format label.
+=========================================================================
+Supplier: US Foods
+Invoice #: DEMO-4471902
+Date: 2026-03-14
+Ship To: Bella Vista Trattoria [DEMO RESTAURANT - NOT A REAL BUSINESS]
+
+ITEM CODE          DESCRIPTION                                  UNIT   QTY   UNIT PRICE   EXTENDED
+CHK-BREAST-5LB     CHICKEN BREAST BNLS SKNLS 5LB                CS       4        22.50      90.00
+VEG-TOMATO-ROMA    ROMA TOMATOES 25LB CASE                      CS       2        18.99      37.98
+OIL-EVOO-1GAL      EXTRA VIRGIN OLIVE OIL 1 GALLON              EA       6        24.99     149.94
+DRY-FLOUR-AP-50    ALL PURPOSE FLOUR 50LB BAG                   EA       3        19.50      58.50
+                   SAFFRON THREADS SPANISH GRADE A 1OZ          EA       1        89.00      89.00
+
+                                                          INVOICE TOTAL      425.42
+
+Payment terms: Net 30. Questions: this is demo data; there is no real account.

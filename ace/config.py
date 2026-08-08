@@ -1,6 +1,15 @@
+"""A.C.E. configuration.
+
+Every threshold below is traceable to a specific section of the working paper.
+Where a value is an engineering choice NOT specified by the paper, it is
+labelled as such rather than presented as a sourced parameter.
+
+Reference:
+    Kanoklertwongse, A. (2026). A.C.E. — AI Concierge & Engine: An AI-Driven
+    Financial Intelligence Framework for U.S. SME Restaurant Resilience.
+    ResearchGate Working Paper. DOI: 10.13140/RG.2.2.33391.60326
 """
-A.C.E. Configuration Management
-"""
+from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import List
@@ -8,59 +17,66 @@ from typing import List
 
 @dataclass
 class ACEConfig:
-    """
-    Central configuration for the A.C.E. pipeline.
+    # ── Layer 1: Automated Invoice Ingestion (White Paper §3.2) ──────────
+    # "Items with <80% match confidence routed to manual review queue" — §3.2
+    sku_match_confidence_threshold: float = 0.80
 
-    Thresholds are calibrated for the U.S. SME restaurant context
-    based on industry benchmarks from the National Restaurant Association (2025).
-    """
+    # "any cost change >5% requires manager confirmation before sync" — §3.2,
+    # restated as the AI-hallucination mitigation in §5.2.
+    price_change_confirmation_threshold: float = 0.05
 
-    # ── Layer 1: Invoice Ingestion ────────────────────────────────────
-    # OCR confidence threshold — items below this go to manual review queue
-    ocr_confidence_threshold: float = 0.80
-
-    # Price change threshold — changes above this require manager confirmation
-    # Satisfies Human-in-the-Loop requirement for financial decisions
-    price_change_confirmation_threshold: float = 0.05  # 5%
-
-    # ── Layer 2: Menu Engineering ─────────────────────────────────────
-    # Food cost % threshold — items above this trigger pricing recommendation
-    # 32% is the standard industry benchmark for full-service restaurants
+    # ── Layer 2: Dynamic Menu Engineering (White Paper §3.3) ─────────────
+    # "exceeded a configurable threshold (defaulting to 32%)" — §3.3
     food_cost_alert_threshold: float = 0.32
 
-    # Minimum price recommendation confidence before surfacing to manager
-    pricing_recommendation_confidence: float = 0.75
+    # ENGINEERING CHOICE — not specified in the working paper.
+    # §3.3 says a recommendation "maintains target margin" but does not give a
+    # numeric target. Repricing exactly to the 32% alert threshold would leave
+    # an item re-flagged on any further cost rise, so the recommendation targets
+    # a band below it. Exposed here so an operator can set their own target.
+    target_food_cost_pct: float = 0.28
 
-    # Supported POS systems for API integration
-    supported_pos_systems: List[str] = field(default_factory=lambda: [
-        "toast", "clover", "square", "csv_export"
-    ])
-
-    # ── Layer 3: Labor Scheduling ─────────────────────────────────────
-    # Days ahead to generate staffing recommendations
+    # ── Layer 3: Predictive Labor Scheduling (White Paper §3.4) ──────────
+    # "staffing recommendations 7 days in advance" — §3.4
     scheduling_horizon_days: int = 7
 
-    # Minimum staffing level — never recommend below this regardless of forecast
+    # "subject to configurable constraints including minimum staffing
+    # levels" — §3.4. The specific integers are operator-set, not paper-set.
     min_front_of_house_staff: int = 2
     min_back_of_house_staff: int = 1
 
-    # External signals to incorporate in demand forecast
-    use_weather_data: bool = True
-    use_local_events: bool = True
+    # ── Human-in-the-Loop governance (White Paper §3.1, §5.2) ───────────
+    # "All AI-generated recommendations require manager confirmation before
+    # executing financial or operational changes" — §3.1.
+    # Phase 3 may enable bounded autonomous pricing (§3.3); it is off by
+    # default and Phase 1 must never enable it.
+    autonomous_pricing_change_enabled: bool = False
+    autonomous_scheduling_enabled: bool = False
 
-    # ── Human-in-the-Loop Controls ────────────────────────────────────
-    # All decisions above these thresholds require explicit manager confirmation
-    # This is non-negotiable — addresses vicarious liability risk
-    autonomous_invoice_sync_max_change: float = 0.05
-    autonomous_pricing_change_enabled: bool = False  # Phase 3 only
-    autonomous_scheduling_enabled: bool = False       # Phase 3 only
+    # ── Deployment phase (White Paper §4.1) ─────────────────────────────
+    # 1 = Unfreezing, 2 = Moving (advisory), 3 = Refreezing (bounded autonomy).
+    # This repository implements Phase 1/2 advisory behaviour only.
+    deployment_phase: int = 1
 
-    # ── API Configuration ─────────────────────────────────────────────
-    api_host: str = "0.0.0.0"
+    # POS systems named in the paper (§ Abstract, §3.1). Phase-1 integration is
+    # file-based; live REST/webhook integration is future work.
+    supported_pos_systems: List[str] = field(
+        default_factory=lambda: ["toast", "clover", "csv_export"]
+    )
+
+    api_host: str = "127.0.0.1"
     api_port: int = 8001
 
-    # ── Phase tracking ────────────────────────────────────────────────
-    # Phase 1 (current): advisory mode, CSV/JSON POS integration
-    # Phase 2: live POS API integration, accuracy validation
-    # Phase 3: selective automation within pre-approved parameters
-    deployment_phase: int = 1
+    def __post_init__(self) -> None:
+        if not 0 < self.target_food_cost_pct <= self.food_cost_alert_threshold:
+            raise ValueError(
+                "target_food_cost_pct must be >0 and <= food_cost_alert_threshold; "
+                f"got target={self.target_food_cost_pct} alert={self.food_cost_alert_threshold}"
+            )
+        if self.deployment_phase < 3 and (
+            self.autonomous_pricing_change_enabled or self.autonomous_scheduling_enabled
+        ):
+            raise ValueError(
+                "Autonomous execution is a Phase-3 capability (White Paper §3.3, §4.1). "
+                f"Cannot enable it at deployment_phase={self.deployment_phase}."
+            )

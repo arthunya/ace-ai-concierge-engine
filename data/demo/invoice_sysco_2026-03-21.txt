@@ -1,0 +1,18 @@
+=========================================================================
+  [DEMO DATA - ILLUSTRATIVE ONLY]
+  Synthetic invoice written for this repository. Not a real supplier
+  invoice and not real pricing. "Sysco" appears only as a format label.
+=========================================================================
+Supplier: Sysco Corporation
+Invoice #: DEMO-8830571
+Date: 2026-03-21
+Ship To: Bella Vista Trattoria [DEMO RESTAURANT - NOT A REAL BUSINESS]
+
+ITEM CODE          DESCRIPTION                                  UNIT   QTY   UNIT PRICE   EXTENDED
+PRO-BEEF-GRND-10   GROUND BEEF 80/20 10LB                       CS       3        37.00     111.00
+CHZ-MOZZ-5LB       MOZZARELLA WHOLE MILK 5LB                    CS       4        21.40      85.60
+VEG-ROMAINE-24     ROMAINE HEARTS 24CT CASE                     CS       2        41.00      82.00
+SEA-SHRIMP-2LB     SHRIMP 16/20 P&D 2LB                         EA       5        27.90     139.50
+                   TRUFFLE OIL WHITE 250ML                      EA       2        31.75      63.50
+
+                                                          INVOICE TOTAL      481.60

@@ -1,0 +1,22 @@
+=========================================================================
+  [DEMO DATA - ILLUSTRATIVE ONLY]
+  Synthetic invoice written for this repository. Not a real supplier
+  invoice and not real pricing.
+
+  This one deliberately has NO supplier item-code column - the format used
+  by many small local suppliers. It exercises the fuzzy name matcher,
+  which has to carry the whole matching load with no code to short-circuit
+  on. Line 4 is intentionally ambiguous.
+=========================================================================
+Supplier: Valley Local Produce Co
+Invoice #: DEMO-2026-0328
+Date: 2026-03-28
+Ship To: Bella Vista Trattoria [DEMO RESTAURANT - NOT A REAL BUSINESS]
+
+DESCRIPTION                                  UNIT   QTY   UNIT PRICE   EXTENDED
+ROMA TOMATOES 25LB CASE                      CS       3        19.25      57.75
+EXTRA VIRGIN OLIVE OIL 1 GALLON              EA       2        25.40      50.80
+ROMAINE HEARTS 24CT CASE                     CS       1        33.10      33.10
+MIXED SEASONAL BOX                           EA       1        44.00      44.00
+
+                                       INVOICE TOTAL      185.65

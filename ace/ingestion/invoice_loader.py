@@ -1,35 +1,102 @@
+"""A.C.E. Layer 1 — Automated Invoice Ingestion (White Paper §3.2).
+
+WHAT THIS MODULE ACTUALLY DOES
+    It parses the *text layer* of a supplier invoice into structured line
+    items, fuzzy-matches each line to an inventory SKU, and routes each line
+    to one of three outcomes defined in White Paper §3.2:
+
+        auto_sync             match >= 80% AND price change <= 5%
+        manager_confirmation  match >= 80% AND price change  > 5%   (§3.2, §5.2)
+        manual_review         match  < 80%                          (§3.2)
+
+WHAT THIS MODULE DOES NOT DO
+    It does not perform optical character recognition. White Paper §3.2
+    specifies "a fine-tuned transformer model for restaurant invoice format
+    recognition"; no such model is trained or invoked here, and none is
+    claimed. Phase 1 consumes a text rendering of the invoice and records
+    how that text was obtained in `extraction_method`, so a reader can never
+    mistake a fixture for a live OCR result.
+
+    Consequently this repository reports NO OCR accuracy figure. Character-
+    and field-level accuracy are measurable only against a labelled corpus of
+    real supplier invoices, which does not exist in this project.
 """
-A.C.E. Layer 1: Automated Invoice Ingestion — AI-OCR Pipeline
-
-The most operationally impactful A.C.E. capability: eliminates manual invoice
-data entry by automatically parsing PDF supplier invoices, extracting line-item
-data, and syncing cost updates to the restaurant's inventory records.
-
-Design principle: Human-in-the-Loop validation gate.
-Any price change exceeding the configured threshold (default 5%) triggers a
-mandatory manager confirmation step before the data is accepted into the system.
-This satisfies the legal standard of "reasonable skill and care" and limits
-autonomous authority to low-stakes routine updates.
-
-Background: The manual invoice data entry problem was observed firsthand during
-14 years of financial analysis work at YLG Bullion Group and ASUSTeK Computer,
-where the same fragmented data integration challenge — structured system data
-vs. unstructured supplier documents — was managed manually at scale. A.C.E.
-encodes the resolution logic that experienced financial analysts apply intuitively.
-"""
+from __future__ import annotations
 
 import logging
 import re
 from dataclasses import dataclass, field
-from datetime import datetime
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple
+
+from rapidfuzz import fuzz, process, utils as fuzz_utils
+
+from ace import db
 
 logger = logging.getLogger(__name__)
 
+# Units seen on U.S. foodservice distributor invoices.
+UNITS = ("CS", "EA", "LB", "KG", "OZ", "GAL", "QT", "PK", "BAG", "BOX", "DZ")
+
+# Line-item forms this parser accepts. Both are anchored and require a
+# trailing unit price + extended price, which is what distinguishes a line
+# item from a header, footer, or address line.
+_UNIT_ALT = "|".join(UNITS)
+_QTY = r"(?P<qty>[\d,]+(?:\.\d+)?)"
+
+
+def _money(name: str) -> str:
+    return rf"\$?\s*(?P<{name}>[\d,]+\.\d{{2}})"
+
+
+# The shared tail of both line forms: UNIT  QTY  UNIT_PRICE  EXTENDED
+_TAIL = (
+    rf"(?P<unit>{_UNIT_ALT})\s+{_QTY}\s+"
+    rf"{_money('unit_price')}\s+{_money('extended')}\s*$"
+)
+
+# ITEMCODE  DESCRIPTION  UNIT  QTY  UNIT_PRICE  EXTENDED
+LINE_WITH_CODE = re.compile(
+    rf"^\s*(?P<code>[A-Z0-9][A-Z0-9\-_/]{{2,}})\s{{2,}}"
+    rf"(?P<desc>\S.*?)\s{{2,}}" + _TAIL,
+    re.IGNORECASE,
+)
+
+# DESCRIPTION  UNIT  QTY  UNIT_PRICE  EXTENDED   (no supplier item code column)
+LINE_NO_CODE = re.compile(
+    rf"^\s*(?P<desc>\S.*?)\s{{2,}}" + _TAIL,
+    re.IGNORECASE,
+)
+
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+
+
+def portable_source_path(path: Path) -> str:
+    """Repo-relative POSIX path for storage and display.
+
+    Absolute paths leak the operating user's name and local directory layout
+    into the database, the API responses, and the built dashboard — which is
+    published. Files inside the repository are recorded relative to its root;
+    anything outside is reduced to its bare filename.
+    """
+    try:
+        return path.resolve().relative_to(REPO_ROOT).as_posix()
+    except ValueError:
+        return path.name
+
+
+SUPPLIER_RE = re.compile(r"^\s*(?:supplier|vendor|from)\s*:\s*(.+?)\s*$", re.IGNORECASE)
+INVOICE_NO_RE = re.compile(r"^\s*invoice\s*(?:#|no\.?|number)\s*:?\s*(\S+)", re.IGNORECASE)
+DATE_RE = re.compile(r"^\s*(?:invoice\s*)?date\s*:\s*(\d{4}-\d{2}-\d{2})", re.IGNORECASE)
+
+
+def _to_float(raw: str) -> float:
+    return float(raw.replace(",", "").replace("$", "").strip())
+
 
 @dataclass
-class InvoiceLineItem:
-    """A single extracted line item from a supplier invoice."""
+class ParsedLineItem:
+    """One line item as read off the invoice, before SKU matching."""
     raw_text: str
     ingredient_name: str
     quantity: float
@@ -37,250 +104,329 @@ class InvoiceLineItem:
     unit_price: float
     total_price: float
     supplier_code: Optional[str] = None
-    matched_sku: Optional[str] = None
-    match_confidence: float = 0.0
-    requires_review: bool = False
+
+
+@dataclass
+class MatchedLineItem:
+    """A parsed line item after SKU matching and routing."""
+    parsed: ParsedLineItem
+    matched_sku: Optional[str]
+    match_confidence: float
+    routing: str
+    routing_reason: str
+    previous_unit_price: Optional[float] = None
+    price_change_pct: Optional[float] = None
+
+    def to_dict(self) -> Dict:
+        return {
+            "raw_text": self.parsed.raw_text,
+            "ingredient_name": self.parsed.ingredient_name,
+            "quantity": self.parsed.quantity,
+            "unit": self.parsed.unit,
+            "unit_price": round(self.parsed.unit_price, 2),
+            "total_price": round(self.parsed.total_price, 2),
+            "supplier_code": self.parsed.supplier_code,
+            "matched_sku": self.matched_sku,
+            "match_confidence": round(self.match_confidence, 4),
+            "routing": self.routing,
+            "routing_reason": self.routing_reason,
+            "previous_unit_price": (
+                round(self.previous_unit_price, 2)
+                if self.previous_unit_price is not None else None
+            ),
+            "price_change_pct": (
+                round(self.price_change_pct * 100, 1)
+                if self.price_change_pct is not None else None
+            ),
+        }
 
 
 @dataclass
 class InvoiceResult:
-    """Complete result of processing a single supplier invoice."""
-    invoice_path: str
+    invoice_id: str
+    source_path: str
     supplier_name: str
+    invoice_number: Optional[str]
     invoice_date: Optional[str]
-    items_extracted: int
-    items_mapped: int
-    items_requiring_review: int
-    total_invoice_cost: float
-    cost_changes_flagged: List[Dict] = field(default_factory=list)
-    line_items: List[InvoiceLineItem] = field(default_factory=list)
-    processed_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
-    requires_manager_review: bool = False
+    extraction_method: str
+    is_demo: bool
+    line_items: List[MatchedLineItem] = field(default_factory=list)
+
+    @property
+    def total_extracted(self) -> float:
+        return sum(li.parsed.total_price for li in self.line_items)
+
+    def counts(self) -> Dict[str, int]:
+        c = {"auto_sync": 0, "manager_confirmation": 0, "manual_review": 0}
+        for li in self.line_items:
+            c[li.routing] += 1
+        return c
 
     def to_dict(self) -> Dict:
+        counts = self.counts()
         return {
-            "invoice_path": self.invoice_path,
+            "invoice_id": self.invoice_id,
+            "source_path": self.source_path,
             "supplier_name": self.supplier_name,
+            "invoice_number": self.invoice_number,
             "invoice_date": self.invoice_date,
-            "items_extracted": self.items_extracted,
-            "items_mapped": self.items_mapped,
-            "items_requiring_review": self.items_requiring_review,
-            "total_invoice_cost": round(self.total_invoice_cost, 2),
-            "cost_changes_flagged": self.cost_changes_flagged,
-            "requires_manager_review": self.requires_manager_review,
-            "processed_at": self.processed_at,
+            "extraction_method": self.extraction_method,
+            "is_demo": self.is_demo,
+            "items_extracted": len(self.line_items),
+            "items_matched": sum(1 for li in self.line_items if li.matched_sku),
+            "routing_counts": counts,
+            "requires_manager_action": counts["manager_confirmation"]
+                                       + counts["manual_review"] > 0,
+            "total_extracted": round(self.total_extracted, 2),
+            "line_items": [li.to_dict() for li in self.line_items],
         }
+
+
+def parse_invoice_text(text: str) -> Tuple[Dict[str, Optional[str]], List[ParsedLineItem]]:
+    """Parse invoice text into a header dict and a list of line items.
+
+    Pure function — no I/O, no database. This is the unit under test.
+    Lines that do not match a line-item form are ignored, which is how
+    headers, totals, and address blocks are excluded.
+    """
+    header: Dict[str, Optional[str]] = {
+        "supplier_name": None, "invoice_number": None, "invoice_date": None,
+    }
+    items: List[ParsedLineItem] = []
+
+    for raw in text.splitlines():
+        if not raw.strip():
+            continue
+
+        if header["supplier_name"] is None:
+            m = SUPPLIER_RE.match(raw)
+            if m:
+                header["supplier_name"] = m.group(1).strip()
+                continue
+        if header["invoice_number"] is None:
+            m = INVOICE_NO_RE.match(raw)
+            if m:
+                header["invoice_number"] = m.group(1).strip()
+                continue
+        if header["invoice_date"] is None:
+            m = DATE_RE.match(raw)
+            if m:
+                header["invoice_date"] = m.group(1).strip()
+                continue
+
+        m = LINE_WITH_CODE.match(raw) or LINE_NO_CODE.match(raw)
+        if not m:
+            continue
+
+        g = m.groupdict()
+        items.append(ParsedLineItem(
+            raw_text=raw.strip(),
+            ingredient_name=g["desc"].strip(),
+            quantity=float(g["qty"].replace(",", "")),
+            unit=g["unit"].upper(),
+            unit_price=_to_float(g["unit_price"]),
+            total_price=_to_float(g["extended"]),
+            supplier_code=(g.get("code") or None),
+        ))
+
+    return header, items
 
 
 class InvoiceLoader:
-    """
-    A.C.E. Layer 1 — Invoice ingestion and OCR extraction.
+    """Layer 1 pipeline: parse -> match -> route -> persist."""
 
-    Phase 1 (proof-of-concept): Simulates OCR extraction using structured
-    sample data. Phase 2 will integrate a fine-tuned transformer OCR model
-    trained on restaurant invoice formats.
-
-    Usage:
-        loader = InvoiceLoader(config)
-        loader.initialize()
-        result = loader.process("path/to/invoice.pdf")
-        print(result.to_dict())
-    """
-
-    # Common restaurant supplier invoice patterns
-    # These regex patterns encode the structural knowledge of how
-    # U.S. food distributor invoices (Sysco, US Foods, etc.) are formatted
-    PRICE_PATTERN = re.compile(r'\$?\s*(\d{1,6}(?:\.\d{2})?)')
-    QTY_PATTERN = re.compile(r'(\d+(?:\.\d+)?)\s*(cs|ea|lb|kg|oz|gal|qt|pk|bag|box|case)', re.IGNORECASE)
-
-    def __init__(self, config):
+    def __init__(self, config, conn=None):
         self.config = config
-        self._inventory_db: Dict[str, Dict] = {}
-        self._initialized = False
+        self.conn = conn or db.connect()
 
-    def initialize(self) -> None:
-        """Load inventory database for SKU matching."""
-        self._load_sample_inventory()
-        self._initialized = True
-        logger.info(f"InvoiceLoader initialized with {len(self._inventory_db)} inventory SKUs")
+    # ── SKU matching ────────────────────────────────────────────────────
+    def _sku_catalogue(self, restaurant_id: str) -> Dict[str, Dict]:
+        rows = self.conn.execute(
+            "SELECT sku, name, unit, last_unit_price FROM inventory_skus "
+            "WHERE restaurant_id = ?", (restaurant_id,)
+        ).fetchall()
+        return {r["sku"]: dict(r) for r in rows}
 
-    def process(self, invoice_path: str) -> InvoiceResult:
+    def match_sku(self, ingredient_name: str, catalogue: Dict[str, Dict],
+                  supplier_code: Optional[str] = None) -> Tuple[Optional[str], float]:
+        """Fuzzy-match a description to a SKU.
+
+        A supplier item code that exactly equals a known SKU is an unambiguous
+        identifier and short-circuits at confidence 1.0. Otherwise this falls
+        back to token-set similarity on the human-readable name, which
+        tolerates word order and the size/pack noise typical of distributor
+        descriptions ("CHICKEN BREAST BNLS SKNLS 5LB" vs "Chicken Breast
+        Boneless Skinless 5lb").
+
+        `default_process` case-folds and strips punctuation before comparison.
+        Without it, invoices printed in upper case — which is most of them —
+        score near zero against mixed-case SKU names.
         """
-        Process a supplier invoice and return extracted line items.
+        if supplier_code and supplier_code.upper() in catalogue:
+            return supplier_code.upper(), 1.0
+        if not catalogue:
+            return None, 0.0
 
-        In Phase 1, this demonstrates the pipeline logic using sample data.
-        In Phase 2, this connects to a live OCR model and POS inventory API.
+        names = {data["name"]: sku for sku, data in catalogue.items()}
+        best = process.extractOne(
+            ingredient_name, list(names.keys()), scorer=fuzz.token_set_ratio,
+            processor=fuzz_utils.default_process,
+        )
+        if best is None:
+            return None, 0.0
+        matched_name, score, _ = best
+        return names[matched_name], score / 100.0
+
+    # ── Routing (White Paper §3.2) ──────────────────────────────────────
+    def route(self, confidence: float, unit_price: float,
+              previous_price: Optional[float]) -> Tuple[str, str, Optional[float]]:
+        """Decide the outcome for one line item. Returns (routing, reason, change_pct)."""
+        conf_pct = confidence * 100
+        conf_gate = self.config.sku_match_confidence_threshold
+
+        if confidence < conf_gate:
+            return ("manual_review",
+                    f"SKU match confidence {conf_pct:.1f}% is below the "
+                    f"{conf_gate * 100:.0f}% threshold (White Paper §3.2).",
+                    None)
+
+        if previous_price is None or previous_price <= 0:
+            return ("manager_confirmation",
+                    "No previously recorded unit price for this SKU, so the "
+                    "change cannot be verified; first-time costs are confirmed "
+                    "by a manager before sync.",
+                    None)
+
+        change = (unit_price - previous_price) / previous_price
+        gate = self.config.price_change_confirmation_threshold
+        if abs(change) > gate:
+            direction = "increase" if change > 0 else "decrease"
+            return ("manager_confirmation",
+                    f"Unit price {direction} of {abs(change) * 100:.1f}% "
+                    f"(${previous_price:.2f} -> ${unit_price:.2f}) exceeds the "
+                    f"{gate * 100:.0f}% variance gate (White Paper §3.2, §5.2).",
+                    change)
+
+        return ("auto_sync",
+                f"Match {conf_pct:.1f}% and price change {change * 100:+.1f}% is "
+                f"within the {gate * 100:.0f}% gate; safe to sync automatically.",
+                change)
+
+    # ── Orchestration ───────────────────────────────────────────────────
+    def process(self, invoice_path: str | Path, restaurant_id: str, *,
+                extraction_method: str = "text_layer",
+                is_demo: bool = False, actor: str = "system") -> InvoiceResult:
+        """Parse one invoice file and persist the results.
+
+        `extraction_method` records the provenance of the text. Phase 1 uses
+        'text_layer'; a future OCR integration would record the engine and
+        model version here instead.
         """
-        if not self._initialized:
-            self.initialize()
+        path = Path(invoice_path)
+        text = path.read_text(encoding="utf-8")
+        header, parsed_items = parse_invoice_text(text)
 
-        logger.info(f"Processing invoice: {invoice_path}")
+        catalogue = self._sku_catalogue(restaurant_id)
+        invoice_id = db.new_id()
+        matched: List[MatchedLineItem] = []
 
-        # Phase 1: simulate OCR extraction with sample invoice data
-        extracted_items = self._simulate_ocr_extraction(invoice_path)
-        mapped_items, cost_changes = self._map_to_inventory(extracted_items)
-
-        requires_review = any(
-            item.requires_review for item in mapped_items
-        ) or len(cost_changes) > 0
+        for item in parsed_items:
+            sku, confidence = self.match_sku(
+                item.ingredient_name, catalogue, item.supplier_code
+            )
+            previous = catalogue.get(sku, {}).get("last_unit_price") if sku else None
+            routing, reason, change = self.route(confidence, item.unit_price, previous)
+            matched.append(MatchedLineItem(
+                parsed=item,
+                matched_sku=sku if confidence >= self.config.sku_match_confidence_threshold else None,
+                match_confidence=confidence,
+                routing=routing,
+                routing_reason=reason,
+                previous_unit_price=previous,
+                price_change_pct=change,
+            ))
 
         result = InvoiceResult(
-            invoice_path=invoice_path,
-            supplier_name=self._detect_supplier(invoice_path),
-            invoice_date=datetime.now().strftime("%Y-%m-%d"),
-            items_extracted=len(extracted_items),
-            items_mapped=sum(1 for i in mapped_items if i.matched_sku),
-            items_requiring_review=sum(1 for i in mapped_items if i.requires_review),
-            total_invoice_cost=sum(i.total_price for i in mapped_items),
-            cost_changes_flagged=cost_changes,
-            line_items=mapped_items,
-            requires_manager_review=requires_review,
+            invoice_id=invoice_id,
+            source_path=portable_source_path(path),
+            supplier_name=header["supplier_name"] or "Unknown Supplier",
+            invoice_number=header["invoice_number"],
+            invoice_date=header["invoice_date"],
+            extraction_method=extraction_method,
+            is_demo=is_demo,
+            line_items=matched,
         )
-
+        self._persist(result, restaurant_id, actor)
+        self._sync_auto_approved(result, actor)
         logger.info(
-            f"Invoice processed: {result.items_extracted} items extracted, "
-            f"{result.items_mapped} mapped, "
-            f"{len(cost_changes)} cost changes flagged"
+            "Invoice %s parsed: %d items, routing=%s",
+            result.invoice_number, len(matched), result.counts(),
         )
         return result
 
-    def _simulate_ocr_extraction(self, invoice_path: str) -> List[InvoiceLineItem]:
+    def _sync_auto_approved(self, result: InvoiceResult, actor: str) -> None:
+        """Write costs for lines that cleared both gates.
+
+        White Paper §3.2 makes this the whole point of Layer 1: a confidently
+        matched line whose price moved within tolerance updates inventory
+        without human keying. Lines routed to manager_confirmation or
+        manual_review are deliberately NOT written here — they wait for an
+        explicit approval via `apply_confirmed_price`.
         """
-        Phase 1 simulation of OCR extraction.
-        Returns representative sample data demonstrating the pipeline.
+        synced = []
+        for li in result.line_items:
+            if li.routing == "auto_sync" and li.matched_sku:
+                self.conn.execute(
+                    "UPDATE inventory_skus SET last_unit_price = ?, updated_at = ? "
+                    "WHERE sku = ?",
+                    (li.parsed.unit_price, db.now_iso(), li.matched_sku),
+                )
+                synced.append({"sku": li.matched_sku,
+                               "unit_price": li.parsed.unit_price})
+        if synced:
+            self.conn.commit()
+            db.audit(self.conn, actor=actor, action="SKU_PRICES_AUTO_SYNCED",
+                     payload={"invoice_id": result.invoice_id, "items": synced})
+
+    def _persist(self, result: InvoiceResult, restaurant_id: str, actor: str) -> None:
+        self.conn.execute(
+            "INSERT INTO invoices (invoice_id, restaurant_id, supplier_name, "
+            "invoice_number, invoice_date, source_path, extraction_method, "
+            "total_extracted, is_demo, processed_at) VALUES (?,?,?,?,?,?,?,?,?,?)",
+            (result.invoice_id, restaurant_id, result.supplier_name,
+             result.invoice_number, result.invoice_date, result.source_path,
+             result.extraction_method, round(result.total_extracted, 2),
+             int(result.is_demo), db.now_iso()),
+        )
+        for li in result.line_items:
+            self.conn.execute(
+                "INSERT INTO invoice_line_items (line_item_id, invoice_id, raw_text, "
+                "ingredient_name, quantity, unit, unit_price, total_price, "
+                "supplier_code, matched_sku, match_confidence, routing, routing_reason) "
+                "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                (db.new_id(), result.invoice_id, li.parsed.raw_text,
+                 li.parsed.ingredient_name, li.parsed.quantity, li.parsed.unit,
+                 li.parsed.unit_price, li.parsed.total_price, li.parsed.supplier_code,
+                 li.matched_sku, li.match_confidence, li.routing, li.routing_reason),
+            )
+        self.conn.commit()
+        db.audit(self.conn, actor=actor, action="INVOICE_PROCESSED",
+                 payload={"invoice_id": result.invoice_id,
+                          "supplier": result.supplier_name,
+                          "routing_counts": result.counts(),
+                          "extraction_method": result.extraction_method})
+
+    def apply_confirmed_price(self, sku: str, new_unit_price: float,
+                              decided_by: str) -> None:
+        """Write a manager-confirmed price to the SKU record.
+
+        Only ever called after a recorded approval — this is the write side of
+        the Human-in-the-Loop gate (White Paper §3.1).
         """
-        # Sample invoice data representative of U.S. food distributor format
-        # (Sysco / US Foods style line items)
-        sample_items = [
-            InvoiceLineItem(
-                raw_text="CHICKEN BREAST BNLS SKNLS 5LB   CS  4   $22.50  $90.00",
-                ingredient_name="Chicken Breast Boneless Skinless 5lb",
-                quantity=4.0, unit="CS",
-                unit_price=22.50, total_price=90.00,
-                supplier_code="CHK-BREAST-5LB"
-            ),
-            InvoiceLineItem(
-                raw_text="ROMA TOMATOES 25LB CASE   CS  2   $18.99  $37.98",
-                ingredient_name="Roma Tomatoes 25lb",
-                quantity=2.0, unit="CS",
-                unit_price=18.99, total_price=37.98,
-                supplier_code="VEG-TOMATO-ROMA"
-            ),
-            InvoiceLineItem(
-                raw_text="OLIVE OIL EVOO 1GAL   EA  6   $24.99  $149.94",
-                ingredient_name="Extra Virgin Olive Oil 1 Gallon",
-                quantity=6.0, unit="EA",
-                unit_price=24.99, total_price=149.94,
-                supplier_code="OIL-EVOO-1GAL"
-            ),
-            InvoiceLineItem(
-                raw_text="ALL PURPOSE FLOUR 50LB BAG   EA  3   $19.50  $58.50",
-                ingredient_name="All Purpose Flour 50lb",
-                quantity=3.0, unit="EA",
-                unit_price=19.50, total_price=58.50,
-                supplier_code="DRY-FLOUR-AP-50"
-            ),
-        ]
-        return sample_items
-
-    def _map_to_inventory(
-        self, items: List[InvoiceLineItem]
-    ) -> Tuple[List[InvoiceLineItem], List[Dict]]:
-        """
-        Match extracted invoice items to inventory SKUs and flag cost changes.
-        """
-        cost_changes = []
-
-        for item in items:
-            # Fuzzy match to inventory
-            best_match, confidence = self._fuzzy_match_sku(item.ingredient_name)
-
-            if confidence >= self.config.ocr_confidence_threshold:
-                item.matched_sku = best_match
-                item.match_confidence = confidence
-
-                # Check for price change vs. last recorded cost
-                if best_match in self._inventory_db:
-                    last_price = self._inventory_db[best_match].get("last_unit_price", 0)
-                    if last_price > 0:
-                        change_pct = abs(item.unit_price - last_price) / last_price
-                        if change_pct > self.config.price_change_confirmation_threshold:
-                            item.requires_review = True
-                            cost_changes.append({
-                                "sku": best_match,
-                                "ingredient": item.ingredient_name,
-                                "old_price": round(last_price, 2),
-                                "new_price": round(item.unit_price, 2),
-                                "change_pct": round(change_pct * 100, 1),
-                                "direction": "increase" if item.unit_price > last_price else "decrease",
-                                "action_required": "Manager confirmation required before syncing",
-                            })
-            else:
-                # Low confidence match → manual review queue
-                item.requires_review = True
-                logger.debug(f"Low confidence match for '{item.ingredient_name}': {confidence:.2f}")
-
-        return items, cost_changes
-
-    def _fuzzy_match_sku(self, ingredient_name: str) -> Tuple[Optional[str], float]:
-        """
-        Match ingredient name to inventory SKU using fuzzy string matching.
-        Phase 2 will use a trained embedding model for semantic matching.
-        """
-        from difflib import SequenceMatcher
-
-        name_lower = ingredient_name.lower()
-        best_sku = None
-        best_score = 0.0
-
-        for sku, data in self._inventory_db.items():
-            sku_name = data.get("name", "").lower()
-            score = SequenceMatcher(None, name_lower, sku_name).ratio()
-            if score > best_score:
-                best_score = score
-                best_sku = sku
-
-        return best_sku, best_score
-
-    def _detect_supplier(self, invoice_path: str) -> str:
-        """Extract supplier name from invoice path or content."""
-        path_lower = invoice_path.lower()
-        if "sysco" in path_lower:
-            return "Sysco Corporation"
-        elif "usfoods" in path_lower or "us_foods" in path_lower:
-            return "US Foods"
-        elif "gordon" in path_lower:
-            return "Gordon Food Service"
-        return "Unknown Supplier"
-
-    def _load_sample_inventory(self) -> None:
-        """
-        Load sample inventory database for Phase 1 demonstration.
-        In Phase 2, this connects to the live POS inventory API.
-        """
-        self._inventory_db = {
-            "CHK-BREAST-5LB": {
-                "name": "Chicken Breast Boneless Skinless 5lb",
-                "unit": "CS",
-                "last_unit_price": 18.99,  # Previous price — change will be flagged
-                "category": "protein",
-            },
-            "VEG-TOMATO-ROMA": {
-                "name": "Roma Tomatoes 25lb Case",
-                "unit": "CS",
-                "last_unit_price": 18.50,
-                "category": "produce",
-            },
-            "OIL-EVOO-1GAL": {
-                "name": "Extra Virgin Olive Oil 1 Gallon",
-                "unit": "EA",
-                "last_unit_price": 24.99,
-                "category": "dry_goods",
-            },
-            "DRY-FLOUR-AP-50": {
-                "name": "All Purpose Flour 50lb Bag",
-                "unit": "EA",
-                "last_unit_price": 17.25,
-                "category": "dry_goods",
-            },
-        }
+        self.conn.execute(
+            "UPDATE inventory_skus SET last_unit_price = ?, updated_at = ? WHERE sku = ?",
+            (new_unit_price, db.now_iso(), sku),
+        )
+        self.conn.commit()
+        db.audit(self.conn, actor=decided_by, action="SKU_PRICE_UPDATED",
+                 payload={"sku": sku, "new_unit_price": new_unit_price})
