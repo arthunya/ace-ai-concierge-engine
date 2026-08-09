@@ -20,10 +20,12 @@ being made, caused by manual invoice processing and fragmented data systems.
 
 The U.S. food services sector employs approximately **8.6 million Americans**
 at **572,464 small food service establishments**, representing 99.6% of all
-operators, and generates over **$1.1 trillion** in annual sales
-([U.S. Small Business Administration Office of Advocacy, 2025](https://advocacy.sba.gov)).
+operators ([U.S. Small Business Administration Office of Advocacy, 2025](https://advocacy.sba.gov)),
+and the traditional restaurant segment generated over **$1.1 trillion** in
+annual sales in 2025 ([National Restaurant Association, 2025 State of the
+Restaurant Industry report](https://restaurant.org)).
 Owners and managers spend an estimated **15 or more hours per week** on manual
-data entry. Both figures are the working paper's (§1.1, §1.2); neither was
+data entry. All figures are the working paper's (§1.1, §1.2); none was
 independently re-verified in this repository.
 
 This repository contains the runnable **Phase-1 implementation** of the
