@@ -142,11 +142,11 @@ than a paper parameter, it says so — in the code, in `/config`, and here.
 
 | Parameter | Value | Source |
 |---|---|---|
-| SKU match confidence floor | 80% | White Paper §3.2 |
-| Price variance confirmation gate | 5% | White Paper §3.2, §5.2 |
-| Food cost alert threshold | 32% | White Paper §3.3 ("configurable, defaulting to 32%") |
+| SKU match confidence floor | 80% | Working Paper §3.2 |
+| Price variance confirmation gate | 5% | Working Paper §3.2, §5.2 |
+| Food cost alert threshold | 32% | Working Paper §3.3 ("configurable, defaulting to 32%") |
 | Repricing target food cost | 28% | **Engineering choice — not in the paper.** §3.3 says a recommendation "maintains target margin" without giving a number. Repricing exactly to 32% would re-flag the item on any further cost rise, so the target sits below the alert line. Configurable. |
-| Forecast horizon | 7 days | White Paper §3.4 |
+| Forecast horizon | 7 days | Working Paper §3.4 |
 | Covers per FOH / BOH staff-hour | 7 / 15 | **Engineering assumption — not in the paper, not measured.** Constructor arguments, since service styles differ enormously. |
 | Minimum staffing floor | 2 FOH / 1 BOH | Operator-set. §3.4 requires configurable minimums but sets no number. |
 
@@ -175,7 +175,7 @@ during that run. Abridged, from an actual run:
     auto-synced 3 | awaiting confirmation 1 | manual review 1
       [CONFIRM] CHICKEN BREAST BNLS SKNLS 5LB
                 Unit price increase of 18.5% ($18.99 -> $22.50) exceeds the 5%
-                variance gate (White Paper §3.2, §5.2).
+                variance gate (Working Paper §3.2, §5.2).
       [REVIEW ] SAFFRON THREADS SPANISH GRADE A 1OZ
                 SKU match confidence 41.4% is below the 80% threshold (§3.2).
 ```
@@ -218,7 +218,7 @@ and embeds the real computed output — the page contains no hand-written number
 ## Ethical Governance
 
 Human-in-the-Loop validation at every decision point with financial or
-operational consequences (White Paper §3.1, §5.2):
+operational consequences (Working Paper §3.1, §5.2):
 
 | Decision | Automation | Human override |
 |---|---|---|
@@ -276,7 +276,7 @@ ace-ai-concierge-engine/
 | **ResearchGate** | [DOI: 10.13140/RG.2.2.33391.60326](https://doi.org/10.13140/rg.2.2.33391.60326) |
 | **SSRN (Elsevier)** | [Abstract ID: 6774983](https://ssrn.com/abstract=6774983) (posted May 22, 2026) |
 
-License: CC BY 4.0 · Published: April 2026
+License: CC BY 4.0 · Published: April 2026 · Revised: October 2026 (corrections to statistics attribution, citations, and author biography; system architecture unchanged)
 
 ---
 

@@ -17,7 +17,7 @@ from typing import List
 
 @dataclass
 class ACEConfig:
-    # ── Layer 1: Automated Invoice Ingestion (White Paper §3.2) ──────────
+    # ── Layer 1: Automated Invoice Ingestion (Working Paper §3.2) ──────────
     # "Items with <80% match confidence routed to manual review queue" — §3.2
     sku_match_confidence_threshold: float = 0.80
 
@@ -25,7 +25,7 @@ class ACEConfig:
     # restated as the AI-hallucination mitigation in §5.2.
     price_change_confirmation_threshold: float = 0.05
 
-    # ── Layer 2: Dynamic Menu Engineering (White Paper §3.3) ─────────────
+    # ── Layer 2: Dynamic Menu Engineering (Working Paper §3.3) ─────────────
     # "exceeded a configurable threshold (defaulting to 32%)" — §3.3
     food_cost_alert_threshold: float = 0.32
 
@@ -36,7 +36,7 @@ class ACEConfig:
     # a band below it. Exposed here so an operator can set their own target.
     target_food_cost_pct: float = 0.28
 
-    # ── Layer 3: Predictive Labor Scheduling (White Paper §3.4) ──────────
+    # ── Layer 3: Predictive Labor Scheduling (Working Paper §3.4) ──────────
     # "staffing recommendations 7 days in advance" — §3.4
     scheduling_horizon_days: int = 7
 
@@ -45,7 +45,7 @@ class ACEConfig:
     min_front_of_house_staff: int = 2
     min_back_of_house_staff: int = 1
 
-    # ── Human-in-the-Loop governance (White Paper §3.1, §5.2) ───────────
+    # ── Human-in-the-Loop governance (Working Paper §3.1, §5.2) ───────────
     # "All AI-generated recommendations require manager confirmation before
     # executing financial or operational changes" — §3.1.
     # Phase 3 may enable bounded autonomous pricing (§3.3); it is off by
@@ -53,7 +53,7 @@ class ACEConfig:
     autonomous_pricing_change_enabled: bool = False
     autonomous_scheduling_enabled: bool = False
 
-    # ── Deployment phase (White Paper §4.1) ─────────────────────────────
+    # ── Deployment phase (Working Paper §4.1) ─────────────────────────────
     # 1 = Unfreezing, 2 = Moving (advisory), 3 = Refreezing (bounded autonomy).
     # This repository implements Phase 1/2 advisory behaviour only.
     deployment_phase: int = 1
@@ -77,6 +77,6 @@ class ACEConfig:
             self.autonomous_pricing_change_enabled or self.autonomous_scheduling_enabled
         ):
             raise ValueError(
-                "Autonomous execution is a Phase-3 capability (White Paper §3.3, §4.1). "
+                "Autonomous execution is a Phase-3 capability (Working Paper §3.3, §4.1). "
                 f"Cannot enable it at deployment_phase={self.deployment_phase}."
             )

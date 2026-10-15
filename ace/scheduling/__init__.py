@@ -1,1 +1,1 @@
-"""Layer 3: predictive labor scheduling (White Paper 3.4)."""
+"""Layer 3: predictive labor scheduling (Working Paper 3.4)."""

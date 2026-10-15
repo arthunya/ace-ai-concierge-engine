@@ -41,7 +41,7 @@ CREATE TABLE invoices (
     invoice_number    TEXT,
     invoice_date      DATE,
     source_path       TEXT NOT NULL,
-    extraction_method TEXT NOT NULL,       -- White Paper §3.2 provenance
+    extraction_method TEXT NOT NULL,       -- Working Paper §3.2 provenance
     total_extracted   NUMERIC(12,2) NOT NULL,
     is_demo           BOOLEAN NOT NULL DEFAULT FALSE,
     processed_at      TIMESTAMPTZ NOT NULL DEFAULT now()

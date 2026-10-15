@@ -72,7 +72,7 @@ def health():
 
 @app.get("/config")
 def read_config():
-    """Thresholds in force, each traceable to a White Paper section."""
+    """Thresholds in force, each traceable to a Working Paper section."""
     return {
         "sku_match_confidence_threshold": CONFIG.sku_match_confidence_threshold,
         "price_change_confirmation_threshold": CONFIG.price_change_confirmation_threshold,
@@ -83,11 +83,11 @@ def read_config():
         "autonomous_pricing_change_enabled": CONFIG.autonomous_pricing_change_enabled,
         "autonomous_scheduling_enabled": CONFIG.autonomous_scheduling_enabled,
         "provenance": {
-            "sku_match_confidence_threshold": "White Paper §3.2",
-            "price_change_confirmation_threshold": "White Paper §3.2, §5.2",
-            "food_cost_alert_threshold": "White Paper §3.3",
+            "sku_match_confidence_threshold": "Working Paper §3.2",
+            "price_change_confirmation_threshold": "Working Paper §3.2, §5.2",
+            "food_cost_alert_threshold": "Working Paper §3.3",
             "target_food_cost_pct": "engineering choice — not specified in the paper",
-            "scheduling_horizon_days": "White Paper §3.4",
+            "scheduling_horizon_days": "Working Paper §3.4",
         },
     }
 

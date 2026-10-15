@@ -1,1 +1,1 @@
-"""Layer 1: automated invoice ingestion (White Paper 3.2)."""
+"""Layer 1: automated invoice ingestion (Working Paper 3.2)."""

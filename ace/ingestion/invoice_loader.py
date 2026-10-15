@@ -1,16 +1,16 @@
-"""A.C.E. Layer 1 — Automated Invoice Ingestion (White Paper §3.2).
+"""A.C.E. Layer 1 — Automated Invoice Ingestion (Working Paper §3.2).
 
 WHAT THIS MODULE ACTUALLY DOES
     It parses the *text layer* of a supplier invoice into structured line
     items, fuzzy-matches each line to an inventory SKU, and routes each line
-    to one of three outcomes defined in White Paper §3.2:
+    to one of three outcomes defined in Working Paper §3.2:
 
         auto_sync             match >= 80% AND price change <= 5%
         manager_confirmation  match >= 80% AND price change  > 5%   (§3.2, §5.2)
         manual_review         match  < 80%                          (§3.2)
 
 WHAT THIS MODULE DOES NOT DO
-    It does not perform optical character recognition. White Paper §3.2
+    It does not perform optical character recognition. Working Paper §3.2
     specifies "a fine-tuned transformer model for restaurant invoice format
     recognition"; no such model is trained or invoked here, and none is
     claimed. Phase 1 consumes a text rendering of the invoice and records
@@ -277,7 +277,7 @@ class InvoiceLoader:
         matched_name, score, _ = best
         return names[matched_name], score / 100.0
 
-    # ── Routing (White Paper §3.2) ──────────────────────────────────────
+    # ── Routing (Working Paper §3.2) ──────────────────────────────────────
     def route(self, confidence: float, unit_price: float,
               previous_price: Optional[float]) -> Tuple[str, str, Optional[float]]:
         """Decide the outcome for one line item. Returns (routing, reason, change_pct)."""
@@ -287,7 +287,7 @@ class InvoiceLoader:
         if confidence < conf_gate:
             return ("manual_review",
                     f"SKU match confidence {conf_pct:.1f}% is below the "
-                    f"{conf_gate * 100:.0f}% threshold (White Paper §3.2).",
+                    f"{conf_gate * 100:.0f}% threshold (Working Paper §3.2).",
                     None)
 
         if previous_price is None or previous_price <= 0:
@@ -304,7 +304,7 @@ class InvoiceLoader:
             return ("manager_confirmation",
                     f"Unit price {direction} of {abs(change) * 100:.1f}% "
                     f"(${previous_price:.2f} -> ${unit_price:.2f}) exceeds the "
-                    f"{gate * 100:.0f}% variance gate (White Paper §3.2, §5.2).",
+                    f"{gate * 100:.0f}% variance gate (Working Paper §3.2, §5.2).",
                     change)
 
         return ("auto_sync",
@@ -367,7 +367,7 @@ class InvoiceLoader:
     def _sync_auto_approved(self, result: InvoiceResult, actor: str) -> None:
         """Write costs for lines that cleared both gates.
 
-        White Paper §3.2 makes this the whole point of Layer 1: a confidently
+        Working Paper §3.2 makes this the whole point of Layer 1: a confidently
         matched line whose price moved within tolerance updates inventory
         without human keying. Lines routed to manager_confirmation or
         manual_review are deliberately NOT written here — they wait for an
@@ -421,7 +421,7 @@ class InvoiceLoader:
         """Write a manager-confirmed price to the SKU record.
 
         Only ever called after a recorded approval — this is the write side of
-        the Human-in-the-Loop gate (White Paper §3.1).
+        the Human-in-the-Loop gate (Working Paper §3.1).
         """
         self.conn.execute(
             "UPDATE inventory_skus SET last_unit_price = ?, updated_at = ? WHERE sku = ?",

@@ -100,7 +100,7 @@
   <section id="p1" class="hide">
     <div class="panel">
       <h2>Layer 1 — Automated invoice ingestion</h2>
-      <div class="sub">White Paper §3.2. Each line is matched to an inventory
+      <div class="sub">Working Paper §3.2. Each line is matched to an inventory
         SKU and routed by two gates: match confidence and price variance.</div>
       <div style="margin:14px 0">
         <label for="invsel" class="sub">Demo invoice:</label><br>
@@ -127,7 +127,7 @@
   <section id="p2" class="hide">
     <div class="panel">
       <h2>Layer 2 — Dynamic menu engineering</h2>
-      <div class="sub">White Paper §3.3. Food cost % is recomputed from current
+      <div class="sub">Working Paper §3.3. Food cost % is recomputed from current
         recorded ingredient costs; items above the threshold get a suggested price.</div>
 
       <div class="banner" style="margin-top:14px">
@@ -351,7 +351,7 @@ $('#afterBtn').onclick  = () => renderPricing('after');
 /* ── Layer 3 ── */
 const L = DATA.labor;
 $('#laborsub').textContent =
-  `White Paper §3.4 · method ${L.method} · ${L.history_days_used} days of history · ` +
+  `Working Paper §3.4 · method ${L.method} · ${L.history_days_used} days of history · ` +
   `horizon ${L.horizon_days} days`;
 
 /* Staffing ratios are author-added, like the 28% repricing target, so they get

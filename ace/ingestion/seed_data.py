@@ -5,7 +5,7 @@ EVERYTHING IN THIS MODULE IS SYNTHETIC AND ILLUSTRATIVE.
 "Bella Vista Trattoria" is not a real business. The SKU prices, recipes, and
 menu prices were written by hand to exercise the engine across realistic
 ranges. They are not observed data from any restaurant, and no pilot
-deployment has taken place — White Paper §4.1 and §7 describe the 10-location
+deployment has taken place — Working Paper §4.1 and §7 describe the 10-location
 Early Adopter pilot as future work.
 
 The restaurant row is flagged `is_demo = 1` in the database, and the demo

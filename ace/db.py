@@ -8,7 +8,7 @@ plus type widening, not a rewrite.
 The audit log is append-only at the database layer — triggers in development,
 revoked UPDATE/DELETE grants in production. Every manager approval and every
 recommendation is written here, which is what makes the Human-in-the-Loop
-claim in White Paper §3.1 auditable rather than merely asserted.
+claim in Working Paper §3.1 auditable rather than merely asserted.
 """
 from __future__ import annotations
 

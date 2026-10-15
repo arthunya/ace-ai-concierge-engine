@@ -52,11 +52,11 @@ def main() -> None:
     print(f"  Working paper DOI: {__doi__}")
     print(RULE)
     print("  ALL DATA BELOW IS SYNTHETIC AND ILLUSTRATIVE.")
-    print("  No pilot deployment has taken place (White Paper §4.1, §7), so")
+    print("  No pilot deployment has taken place (Working Paper §4.1, §7), so")
     print("  none of these figures is a measured result from a restaurant.")
 
     # ── Layer 1 ────────────────────────────────────────────────────────
-    header("LAYER 1 - Automated invoice ingestion (White Paper §3.2)")
+    header("LAYER 1 - Automated invoice ingestion (Working Paper §3.2)")
     pending: list[tuple[str, str, float]] = []
 
     for name in INVOICES:
@@ -146,7 +146,7 @@ def main() -> None:
     print(f"\n  {labor['governance_note']}")
 
     # ── Audit trail ────────────────────────────────────────────────────
-    header("AUDIT TRAIL - append-only (White Paper §3.1)")
+    header("AUDIT TRAIL - append-only (Working Paper §3.1)")
     rows = engine.conn.execute(
         "SELECT action, COUNT(*) n FROM audit_log GROUP BY action ORDER BY n DESC"
     ).fetchall()

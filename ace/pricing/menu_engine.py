@@ -1,4 +1,4 @@
-"""A.C.E. Layer 2 — Dynamic Menu Engineering Engine (White Paper §3.3).
+"""A.C.E. Layer 2 — Dynamic Menu Engineering Engine (Working Paper §3.3).
 
 Computes actual food cost percentage per menu item from the current recorded
 ingredient costs, and generates a price recommendation when an item exceeds
@@ -9,7 +9,7 @@ that moved, the resulting food cost percentage, the threshold it breached,
 and the arithmetic behind the suggested price. A recommendation a manager
 cannot interrogate is not usable under the Human-in-the-Loop model in §3.1.
 
-ADVISORY ONLY. This module never writes a menu price. White Paper §3.3
+ADVISORY ONLY. This module never writes a menu price. Working Paper §3.3
 permits bounded autonomous adjustment in Phase 3; `ACEConfig` refuses to
 enable it below Phase 3, and nothing in this file performs such a write.
 """
@@ -209,7 +209,7 @@ class MenuEngine:
             "autonomous_execution_enabled": self.config.autonomous_pricing_change_enabled,
             "governance_note": (
                 "All recommendations are advisory. A.C.E. does not change menu "
-                "prices without manager confirmation (White Paper §3.1, §3.3)."
+                "prices without manager confirmation (Working Paper §3.1, §3.3)."
             ),
             "items": [a.to_dict() for a in analyses],
         }

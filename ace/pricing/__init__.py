@@ -1,1 +1,1 @@
-"""Layer 2: dynamic menu engineering (White Paper 3.3)."""
+"""Layer 2: dynamic menu engineering (Working Paper 3.3)."""

@@ -103,7 +103,7 @@ def test_t3_non_line_items_are_ignored():
     assert all(i.unit_price > 0 for i in items)
 
 
-# ── Layer 1: routing (White Paper §3.2) ─────────────────────────────────
+# ── Layer 1: routing (Working Paper §3.2) ─────────────────────────────────
 def test_t4_price_increase_over_5pct_requires_confirmation(cfg, conn, seeded):
     result = InvoiceLoader(cfg, conn).process(USFOODS, seeded, is_demo=True)
     chicken = next(li for li in result.line_items
@@ -177,7 +177,7 @@ def test_t10_auto_sync_writes_cost_but_confirmation_does_not(cfg, conn, seeded):
     assert after["CHK-BREAST-5LB"] == before["CHK-BREAST-5LB"] == 18.99
 
 
-# ── Layer 2: menu engineering (White Paper §3.3) ────────────────────────
+# ── Layer 2: menu engineering (Working Paper §3.3) ────────────────────────
 def test_t11_food_cost_pct_and_threshold_flagging(cfg, conn, seeded):
     engine = MenuEngine(cfg, conn)
     analyses = engine.analyze(seeded)
@@ -231,7 +231,7 @@ def test_t14_autonomous_execution_blocked_below_phase_3():
     assert ok.autonomous_pricing_change_enabled is True
 
 
-# ── Layer 3: labor baseline (White Paper §3.4) ──────────────────────────
+# ── Layer 3: labor baseline (Working Paper §3.4) ──────────────────────────
 def test_t15_forecast_horizon_matches_config(cfg, conn, seeded):
     out = LaborForecaster(cfg, conn).recommendations(seeded)
     assert len(out["daily"]) == cfg.scheduling_horizon_days == 7

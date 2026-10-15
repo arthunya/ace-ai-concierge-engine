@@ -1,4 +1,4 @@
-"""A.C.E. Layer 3 — Predictive Labor Scheduling (White Paper §3.4).
+"""A.C.E. Layer 3 — Predictive Labor Scheduling (Working Paper §3.4).
 
 WHAT IS ACTUALLY IMPLEMENTED (Phase-1 baseline)
     A seasonal-naive forecast: for each target date, the model multiplies the
@@ -14,7 +14,7 @@ WHAT IS ACTUALLY IMPLEMENTED (Phase-1 baseline)
     parameters are fitted, and no accuracy claim is made.
 
 WHAT IS NOT IMPLEMENTED
-    White Paper §3.4 specifies "a time-series forecasting model trained on
+    Working Paper §3.4 specifies "a time-series forecasting model trained on
     the restaurant's historical POS transaction data, incorporating external
     signals including local event calendars, weather forecasts, and seasonal
     patterns." No model is trained here and no external signal is consumed —
@@ -90,7 +90,7 @@ class DayForecast:
             },
             "minimum_staffing_floor_applied": self.floor_applied,
             "rationale": self.rationale,
-            "status": "Advisory - manager approval required (White Paper §3.4)",
+            "status": "Advisory - manager approval required (Working Paper §3.4)",
         }
 
 
@@ -241,11 +241,11 @@ class LaborForecaster:
             },
             "governance_note": (
                 "Advisory only. A.C.E. does not publish or modify staff "
-                "schedules (White Paper §3.4, §5.2)."
+                "schedules (Working Paper §3.4, §5.2)."
             ),
             "fairness_note": (
                 "The model consumes aggregate daily cover counts only. No "
-                "worker-level or demographic data is used (White Paper §5.2)."
+                "worker-level or demographic data is used (Working Paper §5.2)."
             ),
             "daily": [f.to_dict() for f in forecasts],
         }
