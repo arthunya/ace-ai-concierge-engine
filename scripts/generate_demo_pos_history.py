@@ -48,7 +48,7 @@ def main() -> None:
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     with OUT.open("w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=["date", "day_of_week", "covers"])
+        w = csv.DictWriter(f, fieldnames=["date", "day_of_week", "covers"], lineterminator="\n")
         w.writeheader()
         w.writerows(rows)
     print(f"{OUT} ({len(rows)} rows, {rows[0]['date']} to {rows[-1]['date']})")

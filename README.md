@@ -6,6 +6,7 @@
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/)
 [![ResearchGate DOI](https://img.shields.io/badge/DOI-10.13140%2FRG.2.2.33391.60326-blue)](https://doi.org/10.13140/RG.2.2.33391.60326)
 [![Status: Active Development](https://img.shields.io/badge/Status-Active%20Development-green.svg)](#project-status)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Dashboard-orange.svg)](https://arthunya.github.io/ace-ai-concierge-engine/dashboard/ACE_Dashboard.html)
 
 Repository created April 2026 · actively maintained.
 
@@ -200,7 +201,11 @@ uvicorn ace.api.endpoints:app --port 8001
 
 ### Dashboard
 
-Open [`dashboard/ACE_Dashboard.html`](dashboard/ACE_Dashboard.html) in any
+**[Open the live interactive dashboard →](https://arthunya.github.io/ace-ai-concierge-engine/dashboard/ACE_Dashboard.html)** (hosted via GitHub Pages;
+GitHub does not render HTML files inline, so clicking the file in the repository
+shows its source code instead).
+
+Or download [`dashboard/ACE_Dashboard.html`](dashboard/ACE_Dashboard.html) and open it in any
 browser — a single self-contained file, no server and no network access
 required. Select a demo invoice to see extracted line items with the routing
 decision and its stated reason, toggle Layer 2 between before and after manager
