@@ -290,7 +290,7 @@ function renderInvoice(i){
       <td>${esc(li.ingredient_name)}<div class="why">${esc(li.raw_text)}</div></td>
       <td>${li.matched_sku ? '<code>'+esc(li.matched_sku)+'</code>' : '<span class="sub">no match</span>'}</td>
       <td class="num">${(li.match_confidence*100).toFixed(0)}%</td>
-      <td class="num">${money(li.unit_price)}${li.previous_unit_price!==null
+      <td class="num">${money(li.unit_price)}${li.matched_sku && li.previous_unit_price!==null
         ? '<div class="why">was '+money(li.previous_unit_price)+'</div>' : ''}</td>
       <td class="num">${chg}</td>
       <td><span class="badge ${cls}">${label}</span>
@@ -329,7 +329,7 @@ function renderPricing(which){
         <div class="why">${esc(i.rationale)}</div>
         <div class="why" style="margin-top:7px"><strong>Cost breakdown:</strong>
           ${i.cost_breakdown.map(c =>
-            `${esc(c.name)} ${money(c.cost)}`).join(' · ')}</div>
+            `${esc(c.name)} ${c.cost_display || money(c.cost)}`).join(' · ')}</div>
       </div>`).join('')
     : `<div class="rec ok"><h3>No item exceeds the ${d.threshold_pct}% threshold</h3>
        <div class="why">Every menu item is currently within target. No pricing

@@ -95,7 +95,10 @@ class ItemCostAnalysis:
                 {"sku": c.sku, "name": c.name,
                  "qty_per_serving": c.qty_per_serving,
                  "unit_price": round(c.unit_price, 2),
-                 "cost": round(c.cost, 4)}
+                 "cost": round(c.cost, 4),
+                 # Same formatting as the rationale text, so the dashboard
+                 # never shows a different cent value for the same cost.
+                 "cost_display": f"${c.cost:.2f}"}
                 for c in sorted(self.contributions, key=lambda c: c.cost, reverse=True)
             ],
         }
