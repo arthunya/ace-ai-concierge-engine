@@ -18,15 +18,13 @@ A.C.E. (AI Concierge & Engine) is an open-source framework addressing the
 (SME) restaurants: the lag between cost data arriving and pricing decisions
 being made, caused by manual invoice processing and fragmented data systems.
 
-The U.S. food services sector employs approximately **8.6 million Americans**
-at **572,464 small food service establishments**, representing 99.6% of all
-operators ([U.S. Small Business Administration Office of Advocacy, 2025](https://advocacy.sba.gov)),
-and the traditional restaurant segment generated over **$1.1 trillion** in
-annual sales in 2025 ([National Restaurant Association, 2025 State of the
-Restaurant Industry report](https://restaurant.org)).
-Owners and managers spend an estimated **15 or more hours per week** on manual
-data entry. All figures are the working paper's (§1.1, §1.2); none was
-independently re-verified in this repository.
+In the U.S. Accommodation and Food Services sector, **572,464 small employer
+firms** — 99.6% of all employer firms in the sector — employ **more than
+8.6 million workers** ([U.S. Small Business Administration Office of Advocacy,
+2025 Small Business Profile: United States](https://advocacy.sba.gov)).
+The working paper estimates that owners and managers spend **15 or more hours
+per week** on manual data entry (§1.2). Figures are as cited in the working
+paper (§1.1, §1.2); none was independently re-verified in this repository.
 
 This repository contains the runnable **Phase-1 implementation** of the
 architecture described in:
@@ -48,7 +46,7 @@ architecture described in:
 | Recipe cost model, food cost %, price recommendation with rationale (§3.3) | **Built & verified** (this repo) |
 | Seasonal-naive 7-day labor baseline (§3.4, partial) | **Built & verified** (this repo) |
 | Manager approval gate, append-only audit log (§3.1) | **Built & verified** (this repo) |
-| REST API, SQLite/PostgreSQL schema, 25-test suite, standalone dashboard | **Built & verified** (this repo) |
+| REST API, SQLite/PostgreSQL schema, 27-test suite, standalone dashboard | **Built & verified** (this repo) |
 | AI-OCR of scanned PDF invoices (§3.2) | **Not built** — no model trained |
 | Live Toast / Clover API integration (§3.1) | **Not built** — Phase 1 is file-based |
 | Trained time-series forecaster with event + weather signals (§3.4) | **Not built** — future work |
@@ -60,7 +58,7 @@ architecture described in:
 10-location Early Adopter pilot as future work (§4.1, §7). This repository
 therefore contains **no pilot metrics, no measured time savings, and no OCR
 accuracy figure** — any such number would be fabricated. The paper's targets
-("100% elimination of manual invoice data entry", "15+ hours saved per week")
+("near-elimination of manual invoice data entry", "15+ hours saved per week")
 are stated in the paper as *targets*, and are not results claimed here.
 
 What this repository is and is not:
@@ -195,7 +193,7 @@ After the manager confirms that held cost, Layer 2 recomputes:
 ### Other entry points
 
 ```bash
-python -m pytest tests/ -q              # 25 tests
+python -m pytest tests/ -q              # 27 tests
 python scripts/build_dashboard.py       # rebuild dashboard/ACE_Dashboard.html
 uvicorn ace.api.endpoints:app --port 8001
 ```
@@ -261,7 +259,7 @@ ace-ai-concierge-engine/
 ├── scripts/
 │   ├── build_dashboard.py
 │   └── generate_demo_pos_history.py
-└── tests/test_ace.py                    25 tests, one per claim
+└── tests/test_ace.py                    27 tests, one per claim
 ```
 
 ---
@@ -281,14 +279,15 @@ License: CC BY 4.0 · Published: April 2026
 
 **Arthunya Kanoklertwongse**
 M.S. Computer Science (AI Concentration) — Westcliff University, San Francisco
-MSc Financial Technology (Merit, academic merit scholarship) — University of the West of England, Bristol
-14 years: Financial analysis · Enterprise operations · Vendor risk management
+MSc Financial Technology (Merit; partial merit scholarship) — University of the West of England, Bristol
+14 years: Financial analysis · Internal audit · Cross-border counterparty coordination
 
 **Background:** A.C.E. emerges from 14 years of practitioner experience in
-financial analysis and internal audit — where the manual data integration
-problems this system addresses were encountered firsthand. The framework
-translates financial governance expertise into AI system design, applying
-audit-grade precision to automated financial intelligence.
+financial analysis, internal audit, and cross-border counterparty coordination —
+where the manual data integration problems this system addresses were
+encountered firsthand. The framework translates financial governance expertise
+into AI system design, applying audit-grade precision to automated financial
+intelligence.
 
 ---
 
